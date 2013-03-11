@@ -1,4 +1,5 @@
 local term = require "terminal"
+local Dungeon = require "dungeon"
 -- local pds = require "pds/pds"
 
 local compass = {
@@ -14,6 +15,9 @@ local compass = {
 
 term.settitle "Cogs of Cronus"
 
+local dlvl = Dungeon.new_level(80, 24)
+local you = dlvl:spawn "rogue"
+
 local function simulate(term)
 	local command = nil
 	local hasquit = false
@@ -28,7 +32,7 @@ local function simulate(term)
 	end
 
 	local function interactiveinput()
-		local key, code = term.nbgetch()
+		local key, code = term.getch(false)
 		-- playerturn(player, key)
 
 		if key == "Q" then
@@ -44,6 +48,8 @@ local function simulate(term)
 				-- world.feed(dir[1], dir[2])
 				if key >= "A" and key <= "Z" then
 			--
+				else
+					you:push(dir[1], dir[2])
 				end
 			end
 
@@ -57,6 +63,8 @@ local function simulate(term)
 
 		term.erase()
 		term.clip(0, 0, nil, nil, "square")
+		dlvl:draw(term)
+
 		--world.draw(term, beeping)
 		--world.advance( )
 
