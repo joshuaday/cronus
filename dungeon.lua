@@ -3,6 +3,7 @@ local ffi = require "ffi"
 local Layer = require "layer"
 local Catalog = require "catalog"
 local Cog = require "cog"
+local Gen = require "gen"
 
 local level = { }
 local level_mt = { __index = level }
@@ -18,6 +19,8 @@ function level:refresh()
 	for i = 1, #self.cogs do
 		self.cogs[i]:stamp(self)
 	end
+
+	self.cogs[2]:push(math.random(3) - 2, math.random(3) - 2)
 end
 
 function level:draw(term)
@@ -58,7 +61,12 @@ local function new_level(width, height)
 		cache = Layer.new("int", width, height)
 	}, level_mt)
 	
-	self:addcog(Cog.generate())
+	-- first, generate a set of rooms, and try to place as many as possible without overlapping
+	-- (random placement is ok)
+	self:addcog(Gen.generate())
+	self:addcog(Gen.generate():push(7, 7))
+	self:addcog(Gen.generate():push(14, 4))
+
 	self:refresh()
 
 	return self

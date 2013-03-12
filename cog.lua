@@ -35,33 +35,12 @@ function cog:stamp(level)
 			level.cache:set(x, y, tile_idx)
 		end
 	end)
+	return self
 end
 
 function cog:push(dx, dy)
 	self.map:moveto(self.map.x1 + dx, self.map.y1 + dy)
-end
-
-function generate( )
-	local chunk = new_cog(15, 15)
-	
-	local wall = Catalog:idx "wall"
-	local floor = Catalog:idx "floor"
-	
-		
-	local function ovoid( )
-		chunk.map:each(function(_, x, y)
-			chunk.map:set(x, y, floor)
-		end)
-	end
-
-	local function rectangle( )
-		chunk.map:each(function(_, x, y)
-			chunk.map:set(x, y, floor)
-		end)
-	end
-
-	ovoid( )
-	return chunk
+	return self
 end
 
 return {

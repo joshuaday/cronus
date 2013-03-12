@@ -40,7 +40,8 @@ local function indexed_tiles()
 end
 
 local function idx(self, name)
-	return (self.tiles[name] or self.tiles.void).idx
+	-- note that name can be a number -- so the idx function works on names and numbers alike
+	return (self.tiles[name] or self.tiles[0]).idx
 end
 
 return {
