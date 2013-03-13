@@ -15,11 +15,12 @@ local tiles = Catalog.tiles
 
 function level:refresh()
 	-- clear the level to void
-	self.tiles:set_default(tiles.void.idx)
-	self.tiles:fill(tiles.void.idx)
-
 	self.transparency:zero()
 	self.top:zero()
+
+	self.fg:zero()
+	self.bg:zero()
+	self.glyph:zero()
 
 	-- copy cogs onto the level, maintaining the cog list (top->down->down->down->...),
 	-- which tells us which cogs are overlapping in each cell of the map
@@ -47,12 +48,15 @@ function level.stamp(level, cog)
 				cog.down:set(x, y, top)
 			end
 
-			level.tiles:set(x, y, tile_idx)
+			local tile = Catalog.tiles[tile_idx]
 			level.top:set(x, y, cog.idx)
+			if tile.fg then level.fg:set(x, y, tile.fg) end
+			if tile.glyph then level.glyph:set(x, y, string.byte(tile.glyph)) end
+			if tile.bg then level.bg:set(x, y, tile.bg) end
+
+			level.transparency:set(x, y, tile.transparency)
 			
 			-- update the level's properties (or maybe wait until we actually need them, using the down list?)
-			local tile = Catalog.tiles[tile_idx]
-			level.transparency:set(x, y, tile.transparency)
 		end
 	end)
 	return level
@@ -84,14 +88,15 @@ function level:draw(term)
 		for x = 1, self.width do
 			local bright = self.fov:get(x, y)
 			if bright > 0 then
-				local idx = self.tiles:get(x, y)
-				local tile = tiles[idx]
-
+				local fg = self.fg:get(x, y)
+				local bg = self.bg:get(x, y)
+				local glyph = self.glyph:get(x, y)
+				
 				term
 					.at(x - 1, y - 1)
-					.fg(tile.fg)
-					.bg(tile.bg)
-					.put(string.byte(tile.glyph, 1))
+					.fg(fg)
+					.bg(bg)
+					.put(glyph)
 			end
 		end
 	end
@@ -129,7 +134,11 @@ local function new_level(width, height)
 		height = height,
 		cogs = { },
 
-		tiles = Layer.new("int", width, height),
+		-- tiles = Layer.new("int", width, height),
+		glyph = Layer.new("int", width, height),
+		fg = Layer.new("int", width, height),
+		bg = Layer.new("int", width, height),
+
 		top = Layer.new("int", width, height), -- the top cog in the cog stack for each tile
 		transparency = Layer.new("double", width, height),
 		fov = Layer.new("double", width, height),
@@ -152,30 +161,26 @@ local function new_level(width, height)
 	local bigmask = Mask.new(width, height)
 	
 	local function refresh_bigmask()
-		bigmask:fill(0)
+		bigmask:zero()
 		for i = 1, #rooms do
 			local room = rooms[i]
-			bigmask:stamp(room, math.add)
+			bigmask:stamp(room, math.max)
 		end
 	end
 
-	for i = 1, 29 do
+	local function count_overlap()
+	end
+
+	for i = 1, 19 do
 		local room = Gen.random_room_mask()
 
 		room:moveto(math.random(1, width - room.width), math.random(height - room.height))
 		rooms[i] = room
-	end
 
-	for j = 1, 90 do
 		refresh_bigmask()
-
-		for i = 1, #rooms do
-			local room = rooms[i]
-			--if room.intersections / room.cells > math.random() * .5 then
-				--room:push(math.random(-2, 2), math.random(-2, 2))
-			--end
-		end
 	end
+
+	refresh_bigmask()
 
 	bigmask:each(function(v, x, y)
 		if v == 1 then

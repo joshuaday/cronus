@@ -21,7 +21,7 @@ local raw_tiles = {
 	},
 
 	rogue = {
-		glyph = "@", fg = 15, bg = 0, -- deal with background layering later
+		glyph = "@", fg = 15, bg = nil,
 		transparency = 1.0
 	}
 }
