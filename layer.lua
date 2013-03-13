@@ -46,6 +46,22 @@ function layer:fill(v)
 	return self
 end
 
+function layer:zero()
+	ffi.fill(self.cells, ffi.sizeof(self.cells), 0)
+	return self
+end
+
+function layer:stamp(l2, fn)
+	assert(self.ctype == l2.ctype)
+	
+	l2:each(function(v, x, y)
+		local idx = self:index(x, y)
+		if idx > 0 then 
+			self.cells[idx] = fn(self.cells[idx], v)
+		end
+	end)
+end
+
 function layer:set_default(v)
 	self.cells[0] = v
 	return self

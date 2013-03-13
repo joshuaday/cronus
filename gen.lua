@@ -16,7 +16,7 @@ local function probable_draw_from_mask(cog, mask, feature)
 end
 
 
-function empty_room( )
+function random_room_mask( )
 	local w, h = math.random(6, 21), math.random(6, 21)
 	local midx, midy = math.floor(w / 2), math.floor(h / 2)
 	local chunk = Cog.new(w, h)
@@ -25,16 +25,10 @@ function empty_room( )
 	local circle = Mask.ovoid(w, h)
 	circle:recenter(midx + 1, midy + 1)
 
-	probable_draw_from_mask(
-		chunk, circle, 
-		Catalog:idx "floor"
-		-- edge = Catalog:idx "wall"
-	)
-
-	return chunk
+	return circle
 end
 
 return {
-	empty_room = empty_room
+	random_room_mask = random_room_mask
 }
 

@@ -1,5 +1,7 @@
 local term = require "terminal"
 local Dungeon = require "dungeon"
+local Messaging = require "messaging"
+
 -- local pds = require "pds/pds"
 
 local compass = {
@@ -14,6 +16,10 @@ local compass = {
 }
 
 term.settitle "Cogs of Cronus"
+
+Messaging:announce {
+[[The rift slams shut behind you
+but air is seeping out.]], ttl = 2200}
 
 local dlvl = Dungeon.new_level(80, 24)
 local you = dlvl:spawn "rogue"
@@ -31,8 +37,8 @@ local function simulate(term)
 		beeping = 7
 	end
 
-	local function interactiveinput()
-		local key, code = term.getch(false)
+	local function interactiveinput(waitms)
+		local key, code = term.getch(waitms)
 		-- playerturn(player, key)
 
 		if key == "Q" then
@@ -57,33 +63,30 @@ local function simulate(term)
 		end
 	end
 
+	local time_step = 20
+	local last_time = term.getms()
 	repeat
 		-- rotinplace(screen[1], screen[3], .001)
-		interactiveinput()
-
-		term.erase()
-		term.clip(0, 0, nil, nil, "square")
-		dlvl:draw(term)
-
-		--world.draw(term, beeping)
-		--world.advance( )
-
-		--term.fg(15).bg(0).at(1, 1).print(globe.formattime())
-
-		if type(beeping) == "number" then
-			beeping = beeping - 1
-			if beeping < 1 then
-				beeping = false
-			end
-		end
-
-		local w, h = term.getsize() -- current "square" terminal
-		term.clip(w, 0, nil, nil)
-		
 		term.clip()
+		term.erase()
+		term.clip(0, 0, 80, 24)
+
+		dlvl:draw(term)
+		local next_animation_event = Messaging:draw(term, next_animation_event)
 
 		term.refresh()
-		term.napms(15)
+
+		interactiveinput(next_animation_event)
+
+		if next_animation_event ~= nil then
+			term.napms(0) -- give the os a slice in case we haven't yet
+		end
+
+		local time_now = term.getms()
+		local time_delta = time_now - last_time
+		last_time = time_now
+
+		Messaging:time_spent(time_delta)
 	until hasquit
 end
 

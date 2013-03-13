@@ -8,6 +8,7 @@ cpp <<- eof | grep ^[^#] > shared-header.h
 	#include <time.h>
 	#include <sys/types.h>
 	#include <sys/stat.h>
+	#include <sys/timeb.h>
 	#include <dirent.h>
 	#include <ncurses.h>
 eof

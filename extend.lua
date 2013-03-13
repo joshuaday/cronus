@@ -251,3 +251,9 @@ math.sgn = function(n)
 	end
 end
 
+math.add = function(a, b) return a + b end
+math.sub = function(a, b) return a - b end
+math.mul = function(a, b) return a * b end
+math.div = function(a, b) return a / b end
+math.mod = function(a, b) return a % b end
+

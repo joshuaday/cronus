@@ -139,7 +139,7 @@ local function rootterm()
 	end
 
 	local function nbgetch()
-		return adapter.getch(true)
+		return adapter.getch(0)
 	end
 	
 	local function mask(on)

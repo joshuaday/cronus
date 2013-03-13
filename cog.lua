@@ -14,7 +14,8 @@ local cog_mt = { __index = cog }
 local function new_cog(width, height)
 	-- even as small as 1x1 is ok for mobs!
 	local self = setmetatable({
-		map = Layer.new("int", width, height)
+		map = Layer.new("int", width, height),
+		down = Layer.new("int", width, height) -- the next cog down in the cog stack for each cell
 	}, cog_mt)
 	
 	return self
@@ -31,6 +32,14 @@ end
 function cog:stamp(level)
 	level:stamp(self)
 	return self
+end
+
+function cog:fill(tag)
+	self.map:fill(Catalog:idx(tag))
+end
+
+function cog:erase(x, y)
+	self.map:set(x, y, 0)
 end
 
 function cog:push(dx, dy)

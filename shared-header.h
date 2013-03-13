@@ -375,6 +375,14 @@ extern int __xmknod (int __ver, __const char *__path, __mode_t __mode,
 extern int __xmknodat (int __ver, int __fd, __const char *__path,
          __mode_t __mode, __dev_t *__dev)
      __attribute__ ((__nothrow__)) __attribute__ ((__nonnull__ (3, 5)));
+struct timeb
+  {
+    time_t time;
+    unsigned short int millitm;
+    short int timezone;
+    short int dstflag;
+  };
+extern int ftime (struct timeb *__timebuf);
 struct dirent
   {
     __ino_t d_ino;

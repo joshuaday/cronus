@@ -52,6 +52,7 @@ local function adapter()
 			ncurses.cbreak()
 			ncurses.curs_set(0)
 			ncurses.scrollok(stdscr, false)
+			ncurses.keypad(stdscr, true)
 		end
 
 		local function preparecolor()
@@ -87,28 +88,31 @@ local function adapter()
 		startmouse()
 	end
 
-	local nonblocking = false
+	local current_timeout = -1
 
 	local function settitle(title)
-		print "\027]2;" -- ESC ]2;
-		print (title) 
-		print "\007" -- BEL
+		io.stdout:write("\027]2;", title, "\007") -- ESC ]0; title BEL
 	end
 
 	local function putch(x, y, ch)
 		ncurses.mvaddch(y, x, ch)
 	end
 
-	local function nodelay(b)
-		b = b or false
-		if nonblocking ~= b then
-			ncurses.nodelay(ncurses.stdscr, b)
-			nonblocking = b
+	local function timeout(timeout)
+		if timeout == nil or type(b) == "boolean" then
+			timeout = timeout and 0 or -1
+		elseif timeout < 0 then
+			timeout = -1 -- all negative values are the same, so use -1
+		end
+
+		if current_timeout ~= timeout then
+			ncurses.wtimeout(ncurses.stdscr, timeout)
+			current_timeout = timeout
 		end
 	end
 
-	local function getch(noblock)
-		nodelay(noblock)
+	local function getch(waitms)
+		timeout(waitms)
 
 		do
 			local ch = ncurses.getch()
@@ -119,10 +123,9 @@ local function adapter()
 	end
 	
 	local function getms()
-		--struct timeb time;
-		--ftime(&time);
-		--return 1000 * time.time + time.millitm;
-		return 15
+		local time = ffi.new "struct timeb"
+		ffi.C.ftime(time)
+		return 1000 * time.time + time.millitm
 	end
 
 	local current_attr = -1
