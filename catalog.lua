@@ -2,21 +2,27 @@
 
 local raw_tiles = {
 	water = {
-		glyph = "~", fg = 12, bg = 4
+		glyph = "~", fg = 12, bg = 4,
+		transparency = 1.0
 	},
 	floor = {
-		glyph = ".", fg = 7, bg = 0
+		glyph = ".", fg = 7, bg = 1,
+		transparency = 1.0
 	},
 	wall = {
-		glyph = "#", fg = 7, bg = 8
+		glyph = "#", fg = 1, bg = 7,
+		transparency = 0.0
 	},
 
 	void = {
-		glyph = "?!", fg = 0, bg = 5 -- black on magenta, ew
+		--glyph = "?!", fg = 0, bg = 5, -- black on magenta, ew
+		glyph = "#", fg = 1, bg = 7,
+		transparency = 0.0
 	},
 
 	rogue = {
-		glyph = "@", fg = 15, bg = 0 -- deal with background layering later
+		glyph = "@", fg = 15, bg = 0, -- deal with background layering later
+		transparency = 1.0
 	}
 }
 
@@ -44,8 +50,14 @@ local function idx(self, name)
 	return (self.tiles[name] or self.tiles[0]).idx
 end
 
+local function tile(self, name)
+	return (self.tiles[name] or self.tiles[0])
+end
+
+
 return {
 	tiles = indexed_tiles(),
-	idx = idx
+	idx = idx,
+	tile = tile
 }
 

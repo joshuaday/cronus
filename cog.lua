@@ -29,12 +29,7 @@ end
 
 
 function cog:stamp(level)
-	-- cog
-	self.map:each(function(tile_idx, x, y)
-		if tile_idx > 0 then
-			level.cache:set(x, y, tile_idx)
-		end
-	end)
+	level:stamp(self)
 	return self
 end
 
@@ -48,3 +43,4 @@ return {
 	generate = generate,
 	mob = new_mob_cog
 }
+

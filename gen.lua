@@ -16,23 +16,25 @@ local function probable_draw_from_mask(cog, mask, feature)
 end
 
 
-function generate( )
-	local chunk = Cog.new(13, 13)
+function empty_room( )
+	local w, h = math.random(6, 21), math.random(6, 21)
+	local midx, midy = math.floor(w / 2), math.floor(h / 2)
+	local chunk = Cog.new(w, h)
 	local map = chunk.map
 	
-	local circle = Mask.circle(5)
-	circle:recenter(6, 6)
+	local circle = Mask.ovoid(w, h)
+	circle:recenter(midx + 1, midy + 1)
 
 	probable_draw_from_mask(
 		chunk, circle, 
 		Catalog:idx "floor"
-			-- edge = Catalog:idx "wall"
+		-- edge = Catalog:idx "wall"
 	)
 
 	return chunk
 end
 
 return {
-	generate = generate
+	empty_room = empty_room
 }
 

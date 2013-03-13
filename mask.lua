@@ -1,19 +1,21 @@
 local Layer = require "layer"
 
 local Mask = { }
-local mask_cache = {
-	circle = { }
-}
 
-function Mask.ovoid( )
+function Mask.ovoid(w, h)
+	local map = Layer.new("double", w, h)
+
 	local midx, midy = .5 * (map.x2 + map.x1), .5 * (map.y2 + map.y1)
 	local inv_rx, inv_ry = (2 / (1.0 + map.x2 - map.x1)) ^ 2, (2 / (1.0 + map.y2 - map.y1)) ^ 2
+
 	map:each(function(_, x, y)
 		local dx, dy = midx - x, midy - y
 		if (dx * dx) * inv_rx + (dy * dy) * inv_ry <= 1 then
-			map:set(x, y, floor)
+			map:set(x, y, 1.0)
 		end
 	end)
+
+	return map
 end
 
 function Mask.rectangle( )
@@ -22,13 +24,10 @@ function Mask.rectangle( )
 	end)
 end
 
-function Mask.circle(radius)
-	if mask_cache.circle[radius] ~= nil then
-		return mask_cache.circle[radius]
-	end
-
+function Mask.circle(w, h)
+	local radius = math.floor(.5 * (math.min(w, h) - 1))
 	local edge = 1 + radius * 2
-	local output = Layer.new("double", edge, edge)
+	local output = Layer.new("double", w, h)
 	local r2 = (radius + 1) * (radius + 1)
 	local falloff_r2 = (radius) * (radius)
 	local c3p0 = 1 / (r2 - falloff_r2)
@@ -59,7 +58,6 @@ function Mask.circle(radius)
 		end
 	end
 
-	mask_cache.circle[radius] = output
 	return output
 end
 
