@@ -11,8 +11,9 @@ function Messaging:announce(msg)
 end
 
 function Messaging:time_spent(ms)
-	local splice = 0
-	for i = 1, #log do
+	local i = 1
+	
+	while i <= #log do
 		if log[i].drawn then
 			-- this condition seems weird, but consider how much time can be spent blocking
 			-- for input when there is no message; the previous call to interaciveinput might
@@ -20,22 +21,25 @@ function Messaging:time_spent(ms)
 			-- by this call
 
 			log[i].ttl = log[i].ttl - ms
-			if log[i].ttl <= 0 then splice = i end
+			if log[i].ttl <= 0 then
+				table.remove(log, i)
+				i = i - 1
+			end
 		end
-	end
-	if splice > 0 then
-		table.remove(log, 1)
+		i = i + 1
 	end
 end
 
 function Messaging:draw(term)
+	local ttl = 10000
 	for i = 1, #log do
 		term.at(1, i).fg(15).bg(0).print(log[i][1])
 		log[i].drawn = true -- mark it so we know to start counting time
+		ttl = math.min(ttl, log[i].ttl)
 	end
 
 	if #log > 0 then
-		return log[1].ttl
+		return ttl
 	else
 		return nil
 	end

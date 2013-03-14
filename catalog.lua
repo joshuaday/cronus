@@ -22,7 +22,7 @@ local raw_tiles = {
 	void = {
 		glyph = "?!", fg = 0, bg = 5, -- black on magenta, ew
 		-- glyph = "#", fg = 1, bg = 7,
-		transparency = 0.0
+		transparency = 0.0, blocking = true
 	},
 
 	rogue = {
