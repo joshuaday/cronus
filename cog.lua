@@ -72,6 +72,22 @@ function cog:moveto(x, y)
 	self.x1, self.y1 = x, y
 end
 
+local eight_ways = {{-1, -1}, {0, -1}, {1, -1}, {1, 0}, {1, 1}, {0, 1}, {-1, 1}, {-1, 0}}
+function cog:neighbors()
+	-- todo: extend to bigger cogs.  here's how:
+	--       any cog that you aren't _currently_ overlapping but
+	--       which you overlap when convolved eight ways, is a neighbor
+	local n = {}
+	for i = 1, 8 do
+		local way = eight_ways[i]
+		
+		for cog in self.dlvl:cogs_at(self.x1 + way[1], self.y1 + way[2]) do
+			n[cog] = true
+		end
+	end
+	return n
+end
+
 function cog:automove(dx, dy)
 	if self.has_initiative then
 		if dx == 0 and dy == 0 then
@@ -80,13 +96,22 @@ function cog:automove(dx, dy)
 			if self.is_player then
 				Messaging:announce {"You wait.", ttl = 500}
 			end
-		end
+		else
+			local targets = self:neighbors()
 
-		if self:push(dx, dy) then
-			-- took our turn!
-			self.has_initiative = false
-		elseif self.is_player then
-			Messaging:announce {"You can't go there!", ttl = 500}
+			if self:push(dx, dy) then
+				-- took our turn!
+				self.has_initiative = false
+
+				local same_targets = self:neighbors()
+				for k in pairs(same_targets) do
+					if k.active and targets[k] then
+						k.dlvl:removecog(k)
+					end
+				end
+			elseif self.is_player then
+				Messaging:announce {"You can't go there!", ttl = 500}
+			end
 		end
 	end
 end

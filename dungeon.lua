@@ -47,8 +47,14 @@ function level:update()
 		self.going = nil
 	end
 
+	-- todo: detect the case where the player has been removed
+	local visited = { }
 	while self.turnorder[1] do
 		local mob = self.turnorder[1] 
+		if visited[mob] then
+			-- the player must be dead or something, so let the keyboard take some input
+			return
+		end
 		table.remove(self.turnorder, 1)
 
 		if mob.dlvl == self and mob.active then
@@ -67,7 +73,21 @@ function level:update()
 				mob.has_initiative = false
 				self.going = nil
 			end
+
+			visited[mob] = true
 		end
+	end
+end
+
+function level:cogs_at(x, y)
+	local cog_idx = self.top:get(x, y)
+	return function ()
+		local cog = self.cogs[cog_idx]
+		if cog ~= nil then
+			cog_idx = cog.down:get(x, y)
+		end
+
+		return cog
 	end
 end
 
@@ -85,7 +105,6 @@ function level:overlap(cog, fn)
 		end
 	end)
 end
-
 
 function level.stamp(level, cog)
 	cog.cells = 0

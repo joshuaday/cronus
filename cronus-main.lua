@@ -27,8 +27,10 @@ local you = dlvl:spawn "rogue"
 local rock = dlvl:spawn "handle"
 rock:moveto(14, 14)
 
-local mob = dlvl:spawn "titan"
-mob:moveto(17, 14)
+for i = 1, 9 do
+	local mob = dlvl:spawn "titan"
+	mob:moveto(17 + 3 * i, 14)
+end
 
 you.is_player = true
 
