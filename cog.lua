@@ -35,6 +35,7 @@ local function new_mob_cog(tile_type)
 	--self.map:set(3, 3, Catalog:idx(tile_type))
 
 	self.active = tile.ai ~= nil
+	self.health = tile.health
 
 	return self
 end
@@ -88,6 +89,27 @@ function cog:neighbors()
 	return n
 end
 
+function cog:attack(victim)
+	-- todo : generate messages in all directions
+	if victim.health then
+		victim.health = victim.health - 1
+		if victim.health <= 0 then
+			victim.dlvl:removecog(victim)
+
+			if self.is_player then
+				Messaging:announce {"You kill it.", ttl = 500}
+			end
+		else
+			if self.is_player then
+				Messaging:announce {"You hit it.", ttl = 500}
+			end
+		end
+		if victim.is_player then
+			Messaging:announce {victim.health .. " hp", ttl = 500}
+		end
+	end
+end
+
 function cog:automove(dx, dy)
 	if self.has_initiative then
 		if dx == 0 and dy == 0 then
@@ -105,8 +127,8 @@ function cog:automove(dx, dy)
 
 				local same_targets = self:neighbors()
 				for k in pairs(same_targets) do
-					if k.active and targets[k] then
-						k.dlvl:removecog(k)
+					if k.health and targets[k] then
+						self:attack(k)
 					end
 				end
 			elseif self.is_player then

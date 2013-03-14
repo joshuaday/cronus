@@ -29,14 +29,16 @@ local raw_tiles = {
 		glyph = "@", fg = 15, bg = nil,
 		transparency = 1.0, blocking = true,
 
-		must_stand = true, ai = "you"
+		must_stand = true, ai = "you",
+		health = 6
 	},
 
 	titan = {
 		glyph = "T", fg = 11, bg = nil,
 		transparency = 1.0, blocking = true,
 
-		must_stand = true, ai = "troll"
+		must_stand = true, ai = "troll",
+		health = 2
 	}
 }
 
