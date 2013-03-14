@@ -23,7 +23,7 @@ function level:refresh()
 	self.glyph:zero()
 
 	-- copy cogs onto the level, maintaining the cog list (top->down->down->down->...),
-	-- which tells us which cogs are overlapping in each cell of the map
+	-- which tells us which cogs are overlapping in each cell of the map,
 	for i = 1, #self.cogs do
 		self.cogs[i].idx = i
 		self.cogs[i]:stamp(self)
@@ -34,6 +34,58 @@ function level:refresh()
 	
 	-- self.cogs[2]:push(math.random(3) - 2, math.random(3) - 2)
 end
+
+function level:update()
+	-- self.me.has_initiative = false
+
+	-- handle initiative!
+	
+	if self.going and self.going.dlvl == self and self.going.has_initiative == true then
+		-- we already have an active mob, so just wait for it
+		return
+	else
+		self.going = nil
+	end
+
+	while self.turnorder[1] do
+		local mob = self.turnorder[1] 
+		table.remove(self.turnorder, 1)
+
+		if mob.dlvl == self and mob.active then
+			-- if the mob is active and is still on this level, it gets its turn now
+
+			mob.has_initiative = true
+			self.going = mob
+
+			table.insert(self.turnorder, mob)
+
+			if mob.is_player then
+				return
+			else
+				-- automatically play the mob!
+				mob:automove(math.random(-1, 1), math.random(-1, 1))
+				mob.has_initiative = false
+				self.going = nil
+			end
+		end
+	end
+end
+
+function level:overlap(cog, fn)
+	cog:each(function (_, x, y)
+		local cog_idx = self.top:get(x, y)
+		-- notice that if a cog appears in the overlap list, then the cell
+		-- it shares is not empty
+		while cog_idx ~= 0 do
+			local next_cog = self.cogs[cog_idx]
+			if next_cog ~= cog then
+				fn(next_cog, x, y)
+			end
+			cog_idx = next_cog.down:get(x, y)
+		end
+	end)
+end
+
 
 function level.stamp(level, cog)
 	cog.cells = 0
@@ -72,12 +124,12 @@ function level:update_fov()
 			eye.fov:recenter(eye_x, eye_y)
 
 			Fov.scan(self.transparency, eye.fov, eye_x, eye_y, eye.fov_mask)
-			eye.fov:each(function(t, x, y)
-				self.fov:set(x, y, t)
-			end)
+
+			if eye.is_player then -- todo: restore seeing eye coolness
+				self.fov:stamp(eye.fov, math.max)
+			end
 		end
 	end
-
 end
 
 function level:draw(term)
@@ -103,22 +155,32 @@ function level:draw(term)
 end
 
 function level:addcog(cog)
-	-- also remove the cog from any level it's on right now
-	self.cogs[1 + #self.cogs] = cog
+	if cog.dlvl ~= self then
+		-- also remove the cog from any level it's on right now
+		if cog.dlvl then
+			cog.dlvl:remove(cog)
+		end
+		self.cogs[1 + #self.cogs] = cog
+		self.turnorder[1 + #self.turnorder] = cog -- give it a turn (the dispatcher will ignore it if it can't take turns)
+		cog.dlvl = self
+	end
 end
 
 function level:removecog(cog)
-	for i = 1, #self.cogs do
-		if self.cogs[i] == cog then
-			table.remove(self.cogs, i)
-			return
+	if cog.dlvl == self then
+		for i = 1, #self.cogs do
+			if self.cogs[i] == cog then
+				table.remove(self.cogs, i)
+				cog.dlvl = nil
+				return
+			end
 		end
 	end
 end
 
 function level:spawn(name)
 	local dude = Cog.mob(name)
-	dude.map:recenter(5, 5)
+	dude:moveto(30, 12)
 	self:addcog(dude)
 
 	range = 11
@@ -133,6 +195,7 @@ local function new_level(width, height)
 		width = width,
 		height = height,
 		cogs = { },
+		turnorder = { },
 
 		-- tiles = Layer.new("int", width, height),
 		glyph = Layer.new("int", width, height),
@@ -171,7 +234,7 @@ local function new_level(width, height)
 	local function count_overlap()
 	end
 
-	for i = 1, 19 do
+	for i = 1, 31 do
 		local room = Gen.random_room_mask()
 
 		room:moveto(math.random(1, width - room.width), math.random(height - room.height))
@@ -187,6 +250,8 @@ local function new_level(width, height)
 			rocks:erase(x, y)
 		end
 	end)
+
+	
 	
 	-- now try to place as many as possible without overlapping
 

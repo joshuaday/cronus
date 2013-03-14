@@ -24,6 +24,15 @@ but air is seeping out.]], ttl = 2200}
 local dlvl = Dungeon.new_level(80, 24)
 local you = dlvl:spawn "rogue"
 
+local rock = dlvl:spawn "handle"
+rock:moveto(14, 14)
+
+local mob = dlvl:spawn "titan"
+mob:moveto(17, 14)
+
+you.is_player = true
+
+
 local function simulate(term)
 	local command = nil
 	local hasquit = false
@@ -37,7 +46,7 @@ local function simulate(term)
 		beeping = 7
 	end
 
-	local function interactiveinput(waitms)
+	local function interactiveinput(you, waitms)
 		local key, code = term.getch(waitms)
 		-- playerturn(player, key)
 
@@ -46,20 +55,27 @@ local function simulate(term)
 			return
 		end
 
-		if key ~= nil then
-			local lowerkey = string.lower(key)
-			local dir = compass[lowerkey]
-			
-			if dir ~= nil then
-				-- world.feed(dir[1], dir[2])
-				if key >= "A" and key <= "Z" then
-			--
-				else
-					you:push(dir[1], dir[2])
+		if key == "p" then
+			paused = not paused
+		end
+
+		if you then
+			if key == "." then
+				you:automove(0, 0)
+			end
+			if key ~= nil then
+				local lowerkey = string.lower(key)
+				local dir = compass[lowerkey]
+				
+				if dir ~= nil then
+					-- world.feed(dir[1], dir[2])
+					if key >= "A" and key <= "Z" then
+				--
+					else
+						you:automove(dir[1], dir[2])
+					end
 				end
 			end
-
-			if key == "p" then paused = not paused end
 		end
 	end
 
@@ -71,13 +87,14 @@ local function simulate(term)
 		term.erase()
 		term.clip(0, 0, 80, 24)
 
+		dlvl:update()
 		dlvl:draw(term)
 		local next_animation_event = Messaging:draw(term, next_animation_event)
 
 		term.refresh()
 
-		interactiveinput(next_animation_event)
-
+		interactiveinput(dlvl.going, next_animation_event)
+		
 		if next_animation_event ~= nil then
 			term.napms(0) -- give the os a slice in case we haven't yet
 		end

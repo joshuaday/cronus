@@ -17,7 +17,7 @@ end
 
 
 function random_room_mask( )
-	local w, h = math.random(6, 21), math.random(6, 21)
+	local w, h = math.random(6, 11), math.random(6, 11)
 	local midx, midy = math.floor(w / 2), math.floor(h / 2)
 	local chunk = Cog.new(w, h)
 	local map = chunk.map

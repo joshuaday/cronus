@@ -2,7 +2,7 @@
 
 local raw_tiles = {
 	water = {
-		glyph = "~", fg = 12, bg = 4,
+		glyph = "~", fg = 12, bg = 4, blocking = true,
 		transparency = 1.0
 	},
 	floor = {
@@ -10,7 +10,12 @@ local raw_tiles = {
 		transparency = 1.0
 	},
 	wall = {
-		glyph = "#", fg = 1, bg = 7,
+		glyph = "#", fg = 1, bg = 7, blocking = true,
+		transparency = 0.0
+	},
+
+	handle = {
+		glyph = "!", fg = 1, bg = 7, blocking = true, pushing = true,
 		transparency = 0.0
 	},
 
@@ -22,7 +27,16 @@ local raw_tiles = {
 
 	rogue = {
 		glyph = "@", fg = 15, bg = nil,
-		transparency = 1.0
+		transparency = 1.0, blocking = true,
+
+		must_stand = true, ai = "you"
+	},
+
+	titan = {
+		glyph = "T", fg = 11, bg = nil,
+		transparency = 1.0, blocking = true,
+
+		must_stand = true, ai = "troll"
 	}
 }
 
