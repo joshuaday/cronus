@@ -13,6 +13,20 @@ LUA_PATH = "?.lua;" .. LUA_PATH
 dofile "extend.lua"
 
 math.randomseed(os.time())
-require(module)
+
+xpcall(
+	function() 
+		require(module)
+	end, 
+	function(msg)
+		print(msg)
+		local traceback = debug.traceback()
+
+		os.exit(1, function()
+			io.stdout:write("\n", tostring(msg), "\n", traceback)
+		end)
+	end
+)
+
 os.exit(0)
 

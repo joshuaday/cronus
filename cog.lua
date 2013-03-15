@@ -23,19 +23,26 @@ local function new_cog(width, height)
 	return self
 end
 
-local function new_mob_cog(tile_type)
+local function new_mob_cog(spawn_name)
 	-- mobs will be fashioned better soon
-	local tile_idx = Catalog:idx(tile_type)
-	local tile = Catalog.tiles[tile_idx]
+	local spawn = Catalog.spawns[spawn_name]
+	local tile = spawn.tile
 
-	local self = new_cog(1, 1)
-	self.map:set(1, 1, tile_idx)
+	local self = new_cog(3, 3)
+	self.map:set(1, 1, spawn.tile.idx)
 	--self.map:set(1, 3, Catalog:idx(tile_type))
 	--self.map:set(3, 1, Catalog:idx(tile_type))
 	--self.map:set(3, 3, Catalog:idx(tile_type))
 
-	self.active = tile.ai ~= nil
-	self.health = tile.health
+	self.tile = tile
+	self.active = spawn.ai ~= nil
+	self.health = spawn.health
+	self.item = spawn.item
+	self.name = spawn.name
+
+	if spawn.bagslots then
+		self.bag = {slots = spawn.bagslots}
+	end
 
 	return self
 end
@@ -97,11 +104,11 @@ function cog:attack(victim)
 			victim.dlvl:removecog(victim)
 
 			if self.is_player then
-				Messaging:announce {"You kill it.", ttl = 500}
+				Messaging:announce {"You kill the " .. victim.name .. ".", ttl = 500}
 			end
 		else
 			if self.is_player then
-				Messaging:announce {"You hit it.", ttl = 500}
+				Messaging:announce {"You hit the " .. victim.name .. ".", ttl = 500}
 			end
 		end
 		if victim.is_player then
@@ -123,6 +130,7 @@ function cog:automove(dx, dy)
 
 			if self:push(dx, dy) then
 				-- took our turn!
+				self:endturn() -- todo : move this elsewhere
 				self.has_initiative = false
 
 				local same_targets = self:neighbors()
@@ -134,6 +142,30 @@ function cog:automove(dx, dy)
 			elseif self.is_player then
 				Messaging:announce {"You can't go there!", ttl = 500}
 			end
+		end
+	end
+end
+
+function cog:endturn()
+	if self.bag then
+		local items = { }
+		self.dlvl:overlap(self, function(cog)
+			if cog.item then
+				items[cog] = true
+			end
+		end)
+
+		local i = 0
+		for cog in pairs(items) do
+			repeat
+				i = i + 1
+				if i > self.bag.slots then
+					Messaging:announce{"Your pack is full.", ttl = 500}
+					return
+				end
+			until self.bag[i] == nil
+			self.bag[i] = cog.dlvl:removecog(cog)
+			Messaging:announce{"You got a " .. self.bag[i].name .. " (" .. string.char(i - 1 + string.byte 'a') .. ").", ttl = 2500}
 		end
 	end
 end
@@ -204,7 +236,6 @@ end
 
 return {
 	new = new_cog,
-	generate = generate,
 	mob = new_mob_cog
 }
 

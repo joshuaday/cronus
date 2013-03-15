@@ -158,7 +158,7 @@ function level:draw(term)
 	for y = 1, self.height do
 		for x = 1, self.width do
 			local bright = self.fov:get(x, y)
-			if bright > 0 then
+			--if bright > 0 then
 				local fg = self.fg:get(x, y)
 				local bg = self.bg:get(x, y)
 				local glyph = self.glyph:get(x, y)
@@ -168,7 +168,7 @@ function level:draw(term)
 					.fg(fg)
 					.bg(bg)
 					.put(glyph)
-			end
+			--end
 		end
 	end
 end
@@ -191,7 +191,7 @@ function level:removecog(cog)
 			if self.cogs[i] == cog then
 				table.remove(self.cogs, i)
 				cog.dlvl = nil
-				return
+				return cog
 			end
 		end
 	end
@@ -253,7 +253,7 @@ local function new_level(width, height)
 	local function count_overlap()
 	end
 
-	for i = 1, 31 do
+	for i = 1, 9 do
 		local room = Gen.random_room_mask()
 
 		room:moveto(math.random(1, width - room.width), math.random(height - room.height))

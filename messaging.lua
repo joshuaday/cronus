@@ -5,7 +5,7 @@ local log = { }
 function Messaging:announce(msg)
 	log[1 + #log] = msg
 
-	msg.ttl = msg.ttl or 2000
+	msg.ttl = type(msg.ttl) == "number" and msg.ttl or 2000
 	msg.x = msg.x or 0
 	msg.y = msg.y or 0
 end

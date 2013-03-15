@@ -24,6 +24,8 @@ local function rootterm()
 	local cursor = {
 		x = 0, y = 0
 	}
+	local run = { }
+
 	local attrib = { fg = 7, bg = 0, link = nil }
 	
 	local maskmap = nil
@@ -89,11 +91,18 @@ local function rootterm()
 		local x, y = cursor.x, cursor.y
 
 		if x >= 0 and y >= 0 and x < clipwidth and y < clipheight then
-			if type(ch) == "string" then
-				adapter.putch(x + x1, y + y1, string.byte(ch))
-			elseif type(ch) == "number" then
-				adapter.putch(x + x1, y + y1, ch)
+			if not run.dry then
+				if type(ch) == "string" then
+					adapter.putch(x + x1, y + y1, string.byte(ch))
+				elseif type(ch) == "number" then
+					adapter.putch(x + x1, y + y1, ch)
+				end
 			end
+
+			run.x1 = math.min(run.x1, x)
+			run.x2 = math.max(run.x2, x)
+			run.y1 = math.min(run.y1, y)
+			run.y2 = math.max(run.y2, y)
 		end
 
 		cursor.x = cursor.x + 1
@@ -121,6 +130,15 @@ local function rootterm()
 		return term
 	end
 
+	local function toend(ch)
+		if not run.dry then
+			ch = ch or 32
+			for x = cursor.x, clipwidth - 1 do
+				put(ch)
+			end
+		end
+	end
+
 	local function fill(ch)
 		ch = ch or 32
 		for y = 0, clipheight - 1 do
@@ -140,6 +158,10 @@ local function rootterm()
 
 	local function nbgetch()
 		return adapter.getch(0)
+	end
+
+	local function flush()
+		while adapter.getch(0) do end
 	end
 	
 	local function mask(on)
@@ -204,6 +226,16 @@ local function rootterm()
 		return term
 	end
 
+	local function dryrun(dry)
+		local inf = 10000
+		local _x1, _y1, _x2, _y2 = run.x1, run.y1, run.x2, run.y2
+		run.x1, run.y1, run.x2, run.y2, run.dry = inf, inf, -1, -1, dry
+		return _x1, _y1, _x2, _y2
+	end
+	dryrun(false)
+
+	-- local function panel
+
 	--ncurses.attrset(ncurses.COLOR_PAIR(2))
 	--ncurses.attrset(attr.bold)
 
@@ -215,11 +247,15 @@ local function rootterm()
 		cr = cr,
 		put = put,
 		print = print,
+		toend = toend,
 		center = center,
 		link = link,
 
+		dryrun = dryrun,
+
 		nbgetch = nbgetch,
 		getch = adapter.getch,
+		flush = flush,
 		getsize = getsize,
 		
 		clip = clip,
@@ -234,8 +270,7 @@ local function rootterm()
 		
 		settitle = adapter.settitle,
 
-		-- this one is special: it's not really a method
-		subterm = subterm,
+		panel = panel,
 		color = color
 	}
 	

@@ -19,9 +19,12 @@ do
 
 	getmetatable(gcwatch).__gc = cleanup
 
-	function os.exit (...)
+	function os.exit (code, finalizer)
 		cleanup()
-		exit(...)
+		if finalizer then
+			finalizer()
+		end
+		exit(code)
 	end
 
 	function os.atexit (fn)

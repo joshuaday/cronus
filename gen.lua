@@ -22,7 +22,7 @@ function random_room_mask( )
 	local chunk = Cog.new(w, h)
 	local map = chunk.map
 	
-	local circle = Mask.ovoid(w, h)
+	local circle = Mask.rectangle(w, h)
 	circle:recenter(midx + 1, midy + 1)
 
 	return circle
