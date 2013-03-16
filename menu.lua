@@ -31,7 +31,8 @@ end
 
 local inventory_prompts = {
 	e = "Equip what?",
-	d = "Drop what?"
+	d = "Drop what?",
+	a = "Apply what?"
 }
 
 function Menu:inventory(term, bag, action)
@@ -64,7 +65,8 @@ function Menu:inventory(term, bag, action)
 					.at(x, y).fg(11).bg(1)
 					.put(string.byte ' ').put(i - 1 + string.byte 'a').put(string.byte ' ')
 					.bg(0)
-					.put(string.byte ' ').put(string.byte ' ')
+					.put(string.byte ' ')
+					.fg(item.tile.fg or 15).bg(item.tile.bg or 0)
 					.put(string.byte (item.tile.glyph)).put(string.byte ' ')
 					.fg(15)
 					.print("a ").print(item.name)
@@ -85,6 +87,21 @@ function Menu:inventory(term, bag, action)
 		else
 			term.print("You have room for " .. (bag.slots - nitems) .. " more items.")
 		end
+	end
+
+	term.flush()
+	
+	if action ~= "i" then
+		repeat
+			local key = term.getch()
+			local idx = 1 + string.byte(key) - string.byte('a')
+			
+			if idx >= 1 and idx <= bag.slots and bag[idx] ~= nil then
+				return idx, action
+			end
+		until key == " "
+	else
+		term.getch()
 	end
 end
 

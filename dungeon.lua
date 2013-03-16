@@ -12,6 +12,7 @@ local level_mt = { __index = level }
 
 local tiles = Catalog.tiles
 
+local FOV_OFF = false
 
 function level:refresh()
 	-- clear the level to void
@@ -158,7 +159,7 @@ function level:draw(term)
 	for y = 1, self.height do
 		for x = 1, self.width do
 			local bright = self.fov:get(x, y)
-			--if bright > 0 then
+			if FOV_OFF or bright > 0 then -- todo : enable fov
 				local fg = self.fg:get(x, y)
 				local bg = self.bg:get(x, y)
 				local glyph = self.glyph:get(x, y)
@@ -168,16 +169,18 @@ function level:draw(term)
 					.fg(fg)
 					.bg(bg)
 					.put(glyph)
-			--end
+			end
 		end
 	end
+	
+	return nil -- no animation going on
 end
 
 function level:addcog(cog)
 	if cog.dlvl ~= self then
 		-- also remove the cog from any level it's on right now
 		if cog.dlvl then
-			cog.dlvl:remove(cog)
+			cog.dlvl:removecog(cog)
 		end
 		self.cogs[1 + #self.cogs] = cog
 		self.turnorder[1 + #self.turnorder] = cog -- give it a turn (the dispatcher will ignore it if it can't take turns)
@@ -202,7 +205,7 @@ function level:spawn(name)
 	dude:moveto(30, 12)
 	self:addcog(dude)
 
-	range = 11
+	range = 13
 	dude.fov = Layer.new("double", range * 2 + 1, range * 2 + 1)
 	dude.fov_mask = Mask.circle(range * 2 + 1, range * 2 + 1)
 	
@@ -250,19 +253,81 @@ local function new_level(width, height)
 		end
 	end
 
-	local function count_overlap()
+	local function does_not_overlap_bigmask(v, x, y)
+		return v < .5 or bigmask:get(x, y) < .5 
 	end
 
-	for i = 1, 9 do
-		local room = Gen.random_room_mask()
+	local ss_seq = {0, 0, 0, 30, 3, 3, 3, 0, 0, 2}
+	local ss, numsofar = #ss_seq, 0
+	
+	while true do
+		numsofar = 1 + numsofar
+		while numsofar > ss_seq[ss] do
+			ss = ss - 1
+			numsofar = 0
+			if ss < 1 then break end
+		end
+		if ss < 1 then break end
 
-		room:moveto(math.random(1, width - room.width), math.random(height - room.height))
-		rooms[i] = room
+		local room = Gen.random_room_mask(ss)
+		local positioned = false
 
-		refresh_bigmask()
+		for j = 1, 20 do
+			room:moveto(math.random(1, 1 + width - room.width), math.random(1 + height - room.height))
+			positioned = room:all(does_not_overlap_bigmask) 
+			if positioned then
+				break
+			end
+		end
+		if positioned then
+			rooms[1 + #rooms] = room
+
+			refresh_bigmask()
+		end
 	end
 
 	refresh_bigmask()
+
+	-- ensure the connectivity of the mask
+	local zonemap = Layer.new("int", bigmask.width, bigmask.height)
+	local pathspace = Layer.new("int", bigmask.width, bigmask.height)
+	local zones
+
+	repeat
+		local progress = false
+
+		zones = bigmask:zones(zonemap)
+
+		-- todo : this is horrifically slow; speed it up
+		for zonenum = 1, #zones do
+			local zone = zones[zonenum]
+			if zone.value == 1 then
+				for accept, x, y, v in pathspace:spill(zone.x, zone.y) do
+					local z = zonemap:get(x, y)
+					if z == zonenum then
+						-- same zone, accept its neighbors at cost 2, and adjust our own score
+						accept(2)
+						pathspace:set(x, y, 1)
+					else
+						-- and if, by chance, it is an open zone, roll back and break
+						if zones[z].value == 1 then
+							-- hooray!  now find our path back (can we?)
+							for x, y in pathspace:rolldown(x, y) do
+								bigmask:set(x, y, 1)
+							end
+							progress = true
+							break
+						end
+
+						-- different zone, accept it at cost v + 1
+						accept(1 + (v or 1))
+					end
+				end
+				-- rocks.map:set(zone.x, zone.y, Catalog:idx "water")
+			end
+		end
+	until not progress
+	
 
 	bigmask:each(function(v, x, y)
 		if v == 1 then
@@ -270,7 +335,7 @@ local function new_level(width, height)
 		end
 	end)
 
-	
+	-- rocks.map:set(20, 20, Catalog:idx("handle"))
 	
 	-- now try to place as many as possible without overlapping
 

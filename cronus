@@ -20,10 +20,10 @@ xpcall(
 	end, 
 	function(msg)
 		print(msg)
-		local traceback = debug.traceback()
+		local traceback = debug.traceback(tostring(msg), 2)
 
 		os.exit(1, function()
-			io.stdout:write("\n", tostring(msg), "\n", traceback)
+			io.stdout:write("\n", traceback)
 		end)
 	end
 )

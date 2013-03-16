@@ -117,6 +117,20 @@ function cog:attack(victim)
 	end
 end
 
+function cog:manipulate(item_idx, command)
+	local item = self.bag[item_idx]
+	if command == "d" then
+		self.bag[item_idx] = nil
+		
+		item:moveto(self.x1, self.y1)
+		self.dlvl:addcog(item)
+	elseif command == "e" then
+	elseif command == "a" then
+	elseif command == "r" then
+		
+	end
+end
+
 function cog:automove(dx, dy)
 	if self.has_initiative then
 		if dx == 0 and dy == 0 then

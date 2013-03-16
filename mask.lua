@@ -36,53 +36,27 @@ function Mask.rectangle(w, h)
 	return output
 end
 
-local function spill(workspace, x, y)
-	local front_x, front_y = { }, { }
-
-	local function touch(x, y)
-		if workspace.get(x, y) == 0 then
-			front_x[1 + #front_x] = x
-			front_y[1 + #front_y] = y
-			workspace.set(x, y, 1)
-		end
-	end
-	
-	local function accept()
-		touch(x - 1, y)
-		touch(x + 1, y)
-		touch(x, y - 1)
-		touch(x, y + 1)
-	end
-
-	local function iterator()
-		if #front_x > 0 then
-			local i = random.index(front_x)
-			x, y = front_x[i], front_y[i]
-
-			front_x[i] = front_x[#front_x]
-			front_y[i] = front_y[#front_y]
-			front_x[#front_x] = nil
-			front_y[#front_y] = nil
-
-			return accept, x, y
-		else
-			return nil
-		end
-	end
-
-	workspace.fill(0)
-	workspace.setdefault(1)
-
-	touch(x, y)
-	return iterator
-end
-
-function Mask.splash(w, h)
+function Mask.polygon(w, h)
 	local output = Mask.new(w, h)
-	output:fill(1)
 	return output
 end
 
+function Mask.splash(w, h)
+	local workspace = Layer.new("int", w, h)
+	local output = Mask.new(w, h)
+	output:zero()
+
+	local remain = .4 * w * h
+	for accept, x, y in workspace:spill(math.floor(.5 * w), math.floor(.5 * h)) do
+		remain = remain - 1
+		if remain > 0 then accept() end
+		output:set(x, y, 1.0)
+	end
+	
+	return output
+end
+
+-- circle is really a different kind of mask, and this is a dicey issue
 function Mask.circle(w, h)
 	local radius = math.floor(.5 * (math.min(w, h) - 1))
 	local edge = 1 + radius * 2

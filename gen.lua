@@ -16,16 +16,19 @@ local function probable_draw_from_mask(cog, mask, feature)
 end
 
 
-function random_room_mask( )
-	local w, h = math.random(6, 11), math.random(6, 11)
+--local masks = {Mask.rectangle, Mask.ovoid, Mask.splash}
+local masks = {Mask.splash}
+function random_room_mask(ss)
+	local w, h = math.random(ss, 3 * ss), math.random(ss, 2 * ss)
 	local midx, midy = math.floor(w / 2), math.floor(h / 2)
 	local chunk = Cog.new(w, h)
 	local map = chunk.map
 	
-	local circle = Mask.rectangle(w, h)
-	circle:recenter(midx + 1, midy + 1)
+	local mtype = masks[math.random(#masks)]
+	local room = mtype(w, h)
+	room:moveto(1, 1)
 
-	return circle
+	return room
 end
 
 return {

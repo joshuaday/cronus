@@ -3,12 +3,18 @@
 local tiles, spawns
 
 local raw_tiles = {
+	void = {
+		glyph = "?!", fg = 0, bg = 5, -- black on magenta, ew
+		-- glyph = "#", fg = 1, bg = 7,
+		transparency = 0.0, blocking = true
+	},
+
 	water = {
 		glyph = "~", fg = 12, bg = 4, blocking = true,
 		transparency = 1.0
 	},
 	floor = {
-		glyph = ".", fg = 7, bg = 1,
+		glyph = ".", fg = 7, bg = 0,
 		transparency = 1.0
 	},
 	wall = {
@@ -21,14 +27,8 @@ local raw_tiles = {
 		transparency = 0.0
 	},
 
-	void = {
-		glyph = "?!", fg = 0, bg = 5, -- black on magenta, ew
-		-- glyph = "#", fg = 1, bg = 7,
-		transparency = 0.0, blocking = true
-	},
-
 	weapon = {
-		glyph = "?", fg = 11, bg = nil,
+		glyph = "(", fg = 11, bg = nil,
 		transparency = 1.0, blocking = false,
 	}
 }
@@ -83,6 +83,8 @@ local raw_spawns = {
 		attack_pattern = {
 			lunge = true
 		},
+		description = [[
+		]],
 		must_stand = true, item = true
 	},
 	
