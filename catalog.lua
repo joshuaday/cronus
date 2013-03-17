@@ -4,7 +4,15 @@ local tiles, spawns
 
 local levels = {
 	{
-	}
+		rooms = ([[30*splash-50;30*splash-30]]),
+		floors = ("redfloor redfloor brownfloor grayfloor brownfloor"):split" ",
+		walls = ("redwall redwall brownwall graywall brownfloor"):split " "
+	},
+	{
+		rooms = ([[30*splash-50;30*splash-30]]),
+		floors = ("redfloor redfloor brownfloor grayfloor grayfloor brownfloor"):split" ",
+		walls = ("redwall redwall brownwall graywall graywall brownfloor"):split " "
+	},
 }
 
 local hordes = {
@@ -37,38 +45,35 @@ local raw_tiles = {
 		transparency = 1.0
 	},
 
-	floor = {
-		glyph = " ", fg = 7, bg = 1,
+	redfloor = {
+		glyph = ".", fg = 0, bg = 1,
 		transparency = 1.0,
 		complaint = "The ground crunches."
 	},
-	floor2 = {
-		glyph = " ", fg = 1, bg = 3,
+	brownfloor = {
+		glyph = ".", fg = 3, bg = 3,
 		transparency = 1.0
 	},
-	floor3 = {
-		glyph = " ", fg = 0, bg = 7,
+	grayfloor = {
+		glyph = ".", fg = 8, bg = 7,
 		transparency = 1.0
 	},
 
-	wall = {
+	redwall = {
 		glyph = "#", fg = 1, bg = 0, blocking = true,
 		transparency = 0.0, 
 		complaint = "The stone is rough and warm to the touch."
 	},
-	wall2 = {
+	brownwall = {
 		glyph = "#", fg = 3, bg = 0, blocking = true,
 		transparency = 0.0,
 		complaint = "The stone is slick and soapy."
 	},
-	wall3 = {
+	graywall = {
 		glyph = "#", fg = 7, bg = 0, blocking = true,
 		transparency = 0.0,
 		complaint = "The stone is cool and unyielding."
 	},
-
-
-
 
 	-- need cryovolcanoes!
 
@@ -330,6 +335,9 @@ tiles = index_tiles()
 spawns = index_spawns()
 
 return {
+	levels = levels,
+	hordes = hordes,
+
 	tiles = tiles,
 	spawns = spawns,
 	idx = idx,

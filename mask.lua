@@ -41,12 +41,16 @@ function Mask.polygon(w, h)
 	return output
 end
 
-function Mask.splash(w, h)
+function Mask.splash(cellcount)
+	local squish = .5
+	local side = math.ceil(math.sqrt(cellcount / squish))
+	local w, h = side, side
+
 	local workspace = Layer.new("int", w, h)
 	local output = Mask.new(w, h)
 	output:zero()
 
-	local remain = .4 * w * h
+	local remain = .9 * cellcount
 	for accept, x, y in workspace:spill(math.floor(.5 * w), math.floor(.5 * h)) do
 		remain = remain - 1
 		if remain > 0 then accept() end

@@ -252,6 +252,8 @@ end
 
 local function new_level(width, height, dlvl_up)
 	local self = setmetatable({
+		depth = dlvl_up and (1 + dlvl_up.depth) or 1,
+
 		width = width,
 		height = height,
 		cogs = { },
@@ -273,6 +275,8 @@ local function new_level(width, height, dlvl_up)
 		entry = {x = 2, y = math.floor(.5 * height)}, -- updated later if it's not dlvl 1
 		exit = { }
 	}, level_mt)
+
+	local prototype = Catalog.levels[self.depth]
 	
 	do
 		-- locate the entry and exit
@@ -297,9 +301,6 @@ local function new_level(width, height, dlvl_up)
 	self:addcog(floor)
 	self:addcog(rocks)
 
-	floor:fill("floor")
-	rocks:fill("wall")
-
 	local rooms = { } -- masks
 	local bigmask = Mask.new(width, height)
 	
@@ -316,7 +317,7 @@ local function new_level(width, height, dlvl_up)
 	end
 
 	--local ss_seq = {0, 0, 0, 30, 3, 3, 3, 0, 0, 2}
-	local ss_seq = {0, 0, 20, 0, 0, 5, 0, 0, 0, 0, 11}
+	local ss_seq = {0, 0, 20, 0, 0, 5, 11}
 	local ss, numsofar = #ss_seq, 0
 	
 	while true do
@@ -328,7 +329,7 @@ local function new_level(width, height, dlvl_up)
 		end
 		if ss < 1 then break end
 
-		local room = Gen.random_room_mask(ss)
+		local room = Mask.splash(ss * ss) --Gen.random_room_mask(ss)
 		local positioned = false
 
 		for j = 1, 20 do
@@ -422,14 +423,16 @@ local function new_level(width, height, dlvl_up)
 
 	-- decorate the rocks and the floor!
 	do
-		local sigma, turbulence = 30, .7
+		floor:fill("redfloor")
+		rocks:fill("redwall")
+
+		local floors, walls = prototype.floors, prototype.walls
+		local sigma, turbulence = 60, .7
 		local sediment = Marble.displace(
 			Marble.bands(128, 128, 15, 2 * math.pi * math.random()):moveto(-30, -30),
 			Marble.midpoint(128, 128, sigma, turbulence),
 			Marble.midpoint(128, 128, sigma, turbulence)
 		)
-		local floors = {"floor", "floor2", "floor3" }
-		local walls = {"wall", "wall2", "wall3" }
 		floor:each(function(_, x, y)
 			local s = sediment:get(x, y)
 			floor:set(x, y, floors[1 + s % #floors])
