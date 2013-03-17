@@ -116,18 +116,18 @@ local function rootterm()
 		if maskmap then
 			local x, y = cursor.x, cursor.y
 			if maskmap.blocked(x, y, #ch) then
-				return term
+				return term, false
 			else
-				maskmap.block(x + math.floor(#ch / 2), y - 1, 2)
+				-- maskmap.block(x + math.floor(#ch / 2), y - 1, 2)
 				maskmap.block(x - 1, y, 2 + #ch)
-				maskmap.block(x + math.floor(#ch / 2), y + 1, 2)
+				-- maskmap.block(x + math.floor(#ch / 2), y + 1, 2)
 			end
 		end
 
 		for i = 1, #ch do
 			put(string.byte(ch, i, i))
 		end
-		return term
+		return term, true
 	end
 
 	local function toend(ch)

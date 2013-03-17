@@ -24,6 +24,7 @@ but air is seeping out.]], ttl = 2200}
 
 local dlvl = Dungeon.new_level(80, 24)
 local you = dlvl:spawn "rogue"
+you:moveto(dlvl.entry.x, dlvl.entry.y)
 
 -- local rock = dlvl:spawn "handle"
 -- rock:moveto(14, 14)
@@ -81,6 +82,8 @@ local function simulate(term)
 		if key then
 			auto.time, auto.dir = nil, nil
 		end
+		
+		Messaging:input()
 
 		if auto.time and auto.time <= 0 then
 			autorun()
@@ -113,7 +116,7 @@ local function simulate(term)
 					end
 				end
 			end
-			if key == "i" or key == "e" or key =="d" or key == "a" and you.bag then
+			if key == "i" or key == "e" or key =="r" or key =="d" or key == "a" and you.bag then
 				term.erase()
 				dlvl:draw(term) -- clear the screen of messages (for now)
 				local item, command = Menu:inventory(term, you.bag, key)

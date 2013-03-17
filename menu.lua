@@ -32,7 +32,8 @@ end
 local inventory_prompts = {
 	e = "Equip what?",
 	d = "Drop what?",
-	a = "Apply what?"
+	a = "Apply what?",
+	r = "Remove what?"
 }
 
 function Menu:inventory(term, bag, action)

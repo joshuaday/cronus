@@ -247,5 +247,3 @@ math.mul = function(a, b) return a * b end
 math.div = function(a, b) return a / b end
 math.mod = function(a, b) return a % b end
 
-random = {}
-function random.index(arr) return math.random(#arr) end

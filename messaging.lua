@@ -8,6 +8,8 @@ function Messaging:announce(msg)
 	msg.ttl = type(msg.ttl) == "number" and msg.ttl or 2000
 	msg.x = msg.x or 0
 	msg.y = msg.y or 0
+	msg.fg = msg.fg or 15
+	msg.bg = msg.bg or 0
 end
 
 function Messaging:time_spent(ms)
@@ -32,16 +34,34 @@ end
 
 function Messaging:draw(term)
 	local ttl = 10000
+	term.mask(true)
 	for i = 1, #log do
-		term.at(1, i).fg(15).bg(0).print(log[i][1])
+		local x, y = log[i].x, log[i].y
+
+		term.fg(log[i].fg).bg(log[i].bg)
+
+		repeat
+			local _, ok = term.at(x, y).print(log[i][1])
+			y = y + 1
+		until ok
+
 		log[i].drawn = true -- mark it so we know to start counting time
 		ttl = math.min(ttl, log[i].ttl)
 	end
+	term.mask(false)
 
 	if #log > 0 then
 		return ttl
 	else
 		return nil
+	end
+end
+
+function Messaging:input()
+	for i = 1, #log do
+		if log[i].turn and log[i].drawn then
+			log[i].ttl = 0
+		end
 	end
 end
 

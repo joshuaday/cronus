@@ -9,16 +9,60 @@ local raw_tiles = {
 		transparency = 0.0, blocking = true
 	},
 
+	[ [[stairs-up]] ] = {
+		glyph = "<", fg = 12, bg = 0, blocking = true, transparency = 0.0,
+		complaint = "The stairs are blocked."
+	},
+
+	[ [[stairs-down]] ] = {
+		glyph = "<", fg = 11, bg = 0, blocking = true, transparency = 0.0,
+		stairs = true
+	},
+
+
 	water = {
-		glyph = "~", fg = 12, bg = 4, blocking = true,
+		glyph = "~", fg = 12, bg = 4, blocking = false,
 		transparency = 1.0
 	},
+
 	floor = {
-		glyph = ".", fg = 7, bg = 0,
+		glyph = " ", fg = 7, bg = 1,
+		transparency = 1.0,
+		complaint = "The ground crunches."
+	},
+	floor2 = {
+		glyph = " ", fg = 1, bg = 3,
 		transparency = 1.0
 	},
+	floor3 = {
+		glyph = " ", fg = 0, bg = 7,
+		transparency = 1.0
+	},
+
 	wall = {
-		glyph = "#", fg = 1, bg = 7, blocking = true,
+		glyph = "#", fg = 1, bg = 0, blocking = true,
+		transparency = 0.0, 
+		complaint = "The stone is rough and warm to the touch."
+	},
+	wall2 = {
+		glyph = "#", fg = 3, bg = 0, blocking = true,
+		transparency = 0.0,
+		complaint = "The stone is slick and soapy."
+	},
+	wall3 = {
+		glyph = "#", fg = 7, bg = 0, blocking = true,
+		transparency = 0.0,
+		complaint = "The stone is cool and unyielding."
+	},
+
+
+
+
+	-- need cryovolcanoes!
+
+
+	bushes = {
+		glyph = "\"", fg = 2, bg = 0,
 		transparency = 0.0
 	},
 
@@ -33,6 +77,28 @@ local raw_tiles = {
 	}
 }
 
+local pattern = {
+	-- referenced in the spawns, but not indexed or cloned
+	bump = {
+		bump = true
+	},
+	scythe = {
+		scythe = true
+	},
+	lance = {
+		lance = true
+	},
+	lunge = {
+		lunge = true
+	},
+	checkers = {
+		checkers = true
+	},
+	backthrow = {
+		backthrow = true
+	}
+}
+
 local raw_spawns = {
 	rogue = {
 		name = "you", tile = {
@@ -41,48 +107,89 @@ local raw_spawns = {
 		},
 
 		must_stand = true, ai = "you",
-		health = 6, bagslots = 17
+		health = 12, bagslots = 17
 	},
 
 	titan = {
-		name = "titan", tile = {
+		name = "elder titan", tile = {
 			glyph = "T", fg = 11, 
-			transparency = 1.0, blocking = true,
+			transparency = 1.0, blocking = true
 		},
 
+		noises = [[groan]],
+
+		attack_pattern = pattern.bump,
 		must_stand = true, ai = "troll",
-		health = 2
+		health = 4
 	},
+
+	horror = {
+		name = "ionian horror", tile = {
+			glyph = "I", fg = 1,
+			transparency = 1.0, blocking = true
+		},
+		
+		attack_pattern = pattern.bump,
+		must_stand = true, ai = "eel",
+		health = 16
+	},
+
+	prelate = {
+		name = "mimantean prelate", tile = {
+			glyph = "M", fg = 1,
+			transparency = 1.0, blocking = true
+		},
+		
+		attack_pattern = pattern.bump,
+		must_stand = true, ai = "eel",
+		health = 16
+	},
+
+	borer = {
+		name = "callistonian borer", tile = {
+			glyph = "C", fg = 7,
+			transparency = 0.0, blocking = true
+		},
+
+		attack_pattern = pattern.bump,
+		must_stand = true, ai = "troll",
+		health = 16
+	},
+
+	priest = {
+		name = "high priest of Huygens", tile = {
+			glyph = "p", fg = 15,
+			transparency = 1.0, blocking = false
+		},
+		attack_pattern = pattern.bump,
+		must_stand = true, ai = "troll",
+		health = 16
+	},
+
+
+
 
 	scythe = {
 		name = "scythe", tile = "weapon", slot = "wield",
-		attack_pattern = {
-			scythe = true
-		},
+		attack_pattern = pattern.scythe,
 		must_stand = true, item = true
 	},
 
 	lance = {
 		name = "lance", tile = "weapon", slot = "wield",
-		attack_pattern = {
-			lance = true
-		},
+		attack_pattern = pattern.lance,
 		must_stand = true, item = true
 	},
 
 	rapier = {
 		name = "rapier", tile = "weapon", slot = "wield",
-		attack_pattern = {
-			lunge = true
-		},
+		attack_pattern = pattern.lunge,
 		must_stand = true, item = true
 	},
 	
 	holowhip = {
 		name = "holowhip", tile = "weapon", slot = "wield",
-		attack_pattern = {
-			lunge = true
-		},
+		attack_pattern = pattern.checkers,
 		description = [[
 		]],
 		must_stand = true, item = true
@@ -90,9 +197,7 @@ local raw_spawns = {
 	
 	cleaver = {
 		name = "cleaver", tile = "weapon", slot = "wield",
-		attack_pattern = {
-			backthrow = true
-		},
+		attack_pattern = pattern.backthrow,
 		must_stand = true, item = true
 	}
 }
@@ -105,6 +210,7 @@ local function index_tiles()
 		tile.idx = next_idx
 		tile.tag = tag
 
+		tiles[tile] = tile
 		tiles[next_idx] = tile
 		tiles[tag] = tile
 
@@ -126,6 +232,7 @@ local function index_spawns()
 			tile.idx = 1 + #tiles
 			tile.tag = tag .. ".tile"
 
+			tiles[tile] = tile
 			tiles[tile.idx] = tile
 			tiles[tile.tag] = tile
 		end

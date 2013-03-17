@@ -13,6 +13,7 @@ local function new_layer(ctype, width, height)
 		y2 = y1 + height - 1,
 		width = width,
 		height = height,
+		length = width * height,
 
 		cells = ffi.new(ctype .. "[?]", 1 + width * height),
 
@@ -67,44 +68,56 @@ function layer:zero()
 	return self
 end
 
+function layer:replace(old, sub)
+	for i = 1, self.length do
+		if self.cells[i] == old then
+			self.cells[i] = sub
+		end
+	end
+end
+
 function layer:rolldown(x, y)
 	local best, bestx, besty
 
 	local function peek(x, y)
 		local v = self:get(x, y)
-		if v < best then
+		if v < best and v > 0 then
 			best, bestx, besty = v, x, y
 		end
 	end
 
 	local function iterator()
-		bestx, besty = nil, nil
+		x, y = bestx, besty
+		if x ~= nil then
+			bestx = nil
 
-		peek(x - 1, y)
-		peek(x + 1, y)
-		peek(x, y - 1)
-		peek(x, y + 1)
-		
-		return bestx, besty
+			peek(x - 1, y)
+			peek(x + 1, y)
+			peek(x, y - 1)
+			peek(x, y + 1)
+			
+			return x, y
+		end
 	end
 	
-	best = self:get(x, y)
+	best, bestx, besty = self:get(x, y), x, y
 	return iterator
 end
 
-function layer.spill(workspace, x, y)
+function layer.spill(workspace, x, y, v)
 	local front_x, front_y, front_v = { }, { }, { }
 
 	local function touch(x, y, v)
 		if workspace:get(x, y) == 0 then
 			front_x[1 + #front_x] = x
 			front_y[1 + #front_y] = y
-			workspace:set(x, y, v)
+			front_v[1 + #front_v] = v
+			workspace:set(x, y, 1)
 		end
 	end
 	
-	local function accept(v)
-		v = v or 1
+	local function accept(new_v)
+		v = new_v or v
 		touch(x - 1, y, v)
 		touch(x + 1, y, v)
 		touch(x, y - 1, v)
@@ -114,7 +127,7 @@ function layer.spill(workspace, x, y)
 	local function iterator()
 		if #front_x > 0 then
 			local i = random.index(front_x)
-			x, y = front_x[i], front_y[i]
+			x, y, v = front_x[i], front_y[i], front_v[i]
 
 			front_x[i] = front_x[#front_x]
 			front_y[i] = front_y[#front_y]

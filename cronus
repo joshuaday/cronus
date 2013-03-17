@@ -1,5 +1,6 @@
 #! /usr/bin/env luajit
 local module = arg[1] or "cronus-main"
+require "random"
 
 module = module:gsub("%.lua$", "") -- trim .lua
 
@@ -11,8 +12,6 @@ LUA_PATH = module .. "/?.lua;" .. LUA_PATH
 LUA_PATH = "?.lua;" .. LUA_PATH
 
 dofile "extend.lua"
-
-math.randomseed(os.time())
 
 xpcall(
 	function() 

@@ -73,6 +73,14 @@ function cog:erase(x, y)
 	self.map:set(x, y, 0)
 end
 
+function cog:set(x, y, tag)
+	self.map:set(x, y, Catalog:idx(tag))
+end
+
+function cog:get(x, y)
+	return Catalog.tiles[self.map:get(x, y)]
+end
+
 function cog:moveto(x, y)
 	-- mark dirty?
 	self.map:moveto(x, y)
@@ -96,6 +104,16 @@ function cog:neighbors()
 	return n
 end
 
+
+function cog:say(msg)
+	Messaging:announce {
+		msg,
+		ttl = 1500, turn = true,
+		x = self.map.x2 - 1, y = self.map.y1 - 1,
+		bg = 0, fg = 11
+	}
+end
+
 function cog:attack(victim)
 	-- todo : generate messages in all directions
 	if victim.health then
@@ -107,9 +125,10 @@ function cog:attack(victim)
 				Messaging:announce {"You kill the " .. victim.name .. ".", ttl = 500}
 			end
 		else
-			if self.is_player then
-				Messaging:announce {"You hit the " .. victim.name .. ".", ttl = 500}
-			end
+			victim:say(victim.health .. "hp")
+			-- if self.is_player then
+				-- Messaging:announce {"You hit the " .. victim.name .. ".", ttl = 500}
+			-- end
 		end
 		if victim.is_player then
 			Messaging:announce {victim.health .. " hp", ttl = 500}
@@ -154,7 +173,13 @@ function cog:automove(dx, dy)
 					end
 				end
 			elseif self.is_player then
-				Messaging:announce {"You can't go there!", ttl = 500}
+				self.dlvl:refresh()
+				-- find a message
+				local complaint = self.dlvl:topmost(self.x1 + dx, self.y1 + dy, function(cog, tile)
+					return tile.complaint
+				end) or "The gap is too narrow."
+
+				self:say (complaint)
 			end
 		end
 	end
