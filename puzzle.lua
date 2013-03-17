@@ -7,7 +7,7 @@ local random = require "random"
 
 
 
-local function puzzlefy(dlvl, floormask)
+local function puzzlify(dlvl, floormask)
 	-- we'll copy the mask, and as we proceed we'll be
 	-- SPLITTING IT BACK UP INTO ZONES.  the zones will
 	-- have a puzzley tree structure or something.  it's cool.

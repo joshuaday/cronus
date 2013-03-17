@@ -61,6 +61,7 @@ but air is seeping out.]], ttl = 2200}
 local dlvl = Dungeon.new_level(80, 24)
 local you = dlvl:spawn "rogue"
 you:moveto(dlvl.entry.x, dlvl.entry.y)
+you.team = "player"
 
 you:pickup(Cog.item "chisel")
 you:pickup(Cog.item "tank of air")
@@ -136,6 +137,11 @@ local function simulate(term)
 			autorun()
 		end
 
+		if DEBUG_MODE and key == "f8" then
+			error("Testing the error handling.")
+			return
+		end
+
 		if key == "Q" then
 			-- Menu:dialog (term, "Quit?")
 			hasquit = true
@@ -181,7 +187,7 @@ local function simulate(term)
 				end
 			end
 			if key == "t" then
-				you:say "The ceiling is too low to throw anything."
+				you:say "There's no room to throw anything!"
 			end
 			if key == "?" then
 				you:say "Help!"
@@ -191,7 +197,6 @@ local function simulate(term)
 				dlvl = Dungeon.new_level(80, 24, dlvl)
 				dlvl:addcog(you)
 			end
-			if key == "x" then error("You pressed x") end
 		end
 	end
 

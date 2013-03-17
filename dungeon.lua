@@ -301,6 +301,7 @@ function level:spawn(name)
 	range = 13
 	dude.fov = Layer.new("double", range * 2 + 1, range * 2 + 1)
 	dude.fov_mask = Mask.circle(range * 2 + 1, range * 2 + 1)
+	dude.team = "dungeon"
 	
 	return dude
 end
@@ -531,7 +532,7 @@ local function new_level(width, height, dlvl_up)
 	-- other.
 	
 
-	Puzzle.puzzlefy(self, bigmask)
+	Puzzle.puzzlify(self, bigmask)
 
 
 	-- finally, get the map ready for use and return it

@@ -146,7 +146,7 @@ local raw_spawns = {
 			glyph = "m", fg = 10,
 			transparency = 1.0, blocking = 1
 		},
-		noises = [[eeeee,oo oo,SCRAW]],
+		noises = [[eeeee,oo oo oo,SCRAW]],
 		attack_pattern = pattern.bump,
 		must_stand = true, ai = "ape",
 		health = 3

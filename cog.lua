@@ -127,6 +127,24 @@ function cog:neighbors()
 	return n
 end
 
+function cog:may_take_step(dx, dy)
+	local dlvl = self.dlvl
+
+	if dlvl.blocking:get(self.x1 + dx, self.y1 + dy) > 0 then
+		return false 
+	end
+
+	if dx ~= 0 and dy ~= 0 then
+		if dlvl.blocking:get(self.x1 + dx, self.y1) == 2
+		   and dlvl.blocking:get(self.x1, self.y1 + dy) == 2 
+		then
+			return false
+		end
+	end
+
+	return true
+end
+
 function cog:autorun_stop_point(dir)
 	-- this cog is moving in direction dir and wonders whether this is a good place
 	-- to stop.  rather incomplete.
@@ -136,18 +154,9 @@ function cog:autorun_stop_point(dir)
 
 	-- scan eight directions from the player to see if this
 	-- is a place to stop running
-	local dlvl = self.dlvl
 
-	if dlvl.blocking:get(self.x1 + dir[1], self.y1 + dir[2]) > 0 then
-		return true 
-	end
-
-	if dir[1] ~= 0 and dir[2] ~= 0 then
-		if dlvl.blocking:get(self.x1 + dir[1], self.y1) == 2
-		   and dlvl.blocking:get(self.x1, self.y1 + dir[2]) == 2 
-		then
-			return true
-		end
+	if not self:may_take_step(dir[1], dir[2]) then
+		return true
 	end
 
 	for i = 1, 8 do
@@ -184,6 +193,10 @@ end
 
 function cog:attack(victim)
 	-- todo : generate messages in all directions
+	if victim.team == self.team and victim.team ~= nil then
+		return -- don't attack friends
+	end
+
 	if victim.health then
 		victim.health = victim.health - 1
 		if victim.health <= 0 then
@@ -197,9 +210,6 @@ function cog:attack(victim)
 			-- if self.is_player then
 				-- Messaging:announce {"You hit the " .. victim.name .. ".", ttl = 500}
 			-- end
-		end
-		if victim.is_player then
-			Messaging:announce {victim.health .. " hp", ttl = 500}
 		end
 	end
 end
