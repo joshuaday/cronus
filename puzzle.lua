@@ -102,5 +102,5 @@ end
 
 
 return {
-	puzzlefy = puzzlefy
+	puzzlify = puzzlify
 }
