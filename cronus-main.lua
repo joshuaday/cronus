@@ -26,11 +26,15 @@ local dlvl = Dungeon.new_level(80, 24)
 local you = dlvl:spawn "rogue"
 you:moveto(dlvl.entry.x, dlvl.entry.y)
 
+you:pickup(dlvl:spawn "chisel")
+you:pickup(dlvl:spawn "tank of air")
+you:pickup(dlvl:spawn "petn")
+
 -- local rock = dlvl:spawn "handle"
 -- rock:moveto(14, 14)
 
 for i = 1, 9 do
-	local mob = dlvl:spawn "titan"
+	local mob = dlvl:spawn "ape"
 	mob:moveto(17 + 3 * i, 14)
 end
 
@@ -126,7 +130,7 @@ local function simulate(term)
 			end
 			if key == ">" then
 				-- temporary
-				dlvl = Dungeon.new_level(80, 24)
+				dlvl = Dungeon.new_level(80, 24, dlvl)
 				dlvl:addcog(you)
 			end
 			if key == "x" then error("You pressed x") end

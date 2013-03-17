@@ -6,3 +6,8 @@ local Layer = require "layer"
 local random = require "random"
 
 
+
+local function gradient(dlvl)
+	-- get the passable gradient from the entry
+end
+

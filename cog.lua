@@ -28,7 +28,7 @@ local function new_mob_cog(spawn_name)
 	local spawn = Catalog.spawns[spawn_name]
 	local tile = spawn.tile
 
-	local self = new_cog(3, 3)
+	local self = new_cog(1, 1)
 	self.map:set(1, 1, spawn.tile.idx)
 	--self.map:set(1, 3, Catalog:idx(tile_type))
 	--self.map:set(3, 1, Catalog:idx(tile_type))
@@ -185,6 +185,27 @@ function cog:automove(dx, dy)
 	end
 end
 
+
+function cog:pickup(item)
+	-- find a slot to put it in
+	local i = 0
+	repeat
+		i = i + 1
+		if i > self.bag.slots then
+			return false
+		end
+	until self.bag[i] == nil
+
+	-- remove it from the level (if it's on it)
+	if item.dlvl then
+		item.dlvl:removecog(item)
+	end
+
+	-- put it in the bag
+	self.bag[i] = item
+	return i
+end
+
 function cog:endturn()
 	if self.bag then
 		local items = { }
@@ -194,17 +215,13 @@ function cog:endturn()
 			end
 		end)
 
-		local i = 0
 		for cog in pairs(items) do
-			repeat
-				i = i + 1
-				if i > self.bag.slots then
-					Messaging:announce{"Your pack is full.", ttl = 500}
-					return
-				end
-			until self.bag[i] == nil
-			self.bag[i] = cog.dlvl:removecog(cog)
-			Messaging:announce{"You got a " .. self.bag[i].name .. " (" .. string.char(i - 1 + string.byte 'a') .. ").", ttl = 2500}
+			local i = self:pickup(cog)
+			if i then
+				self:say ("A " .. cog.name .. " (" ..string.char(i - 1 + string.byte 'a') .. ")")
+			else
+				self:say ("No room for a " .. cog.name)
+			end
 		end
 	end
 end
@@ -248,20 +265,26 @@ function cog:push(dx, dy)
 		
 		-- check for collisions
 		local blocked = false
-		local pushing = nil
+		local interaction, interacting = nil, nil
 
 		self.dlvl:overlap(self, function (cog, x, y)
 			local tile = cog:gettile(x, y)
-			if tile.pushing then
-				pushing = cog
+			if tile.interact then
+				interaction, interacting = tile.interact, cog
 			end
 			if tile.blocking then
 				blocked = true
 			end
 		end)
 		
-		if pushing then
-			blocked = not pushing:push(dx, dy)
+		if interaction then
+			if interaction == "push" then
+				blocked = not pushing:push(dx, dy)
+			end
+			if interaction == "down" then
+				-- 
+				-- blocked = false
+			end
 		end
 		if blocked then
 			-- revert the motion

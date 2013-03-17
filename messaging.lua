@@ -46,6 +46,7 @@ function Messaging:draw(term)
 		end
 
 		if y < 0 then y = 1 end
+		if x < 0 then x = 0 end
 
 		term.fg(msg.fg).bg(msg.bg)
 

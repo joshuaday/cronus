@@ -250,7 +250,7 @@ function level:spawn(name)
 	return dude
 end
 
-local function new_level(width, height)
+local function new_level(width, height, dlvl_up)
 	local self = setmetatable({
 		width = width,
 		height = height,
@@ -270,10 +270,24 @@ local function new_level(width, height)
 
 		voidcog = Cog.new(1, 1),
 
-		entry = {x = 2, y = math.floor(.5 * height)}, -- updated later if it's not 
-		exit = {x = width - 2, y = math.floor(.5 * height)} -- updated later if it's not 
+		entry = {x = 2, y = math.floor(.5 * height)}, -- updated later if it's not dlvl 1
+		exit = { }
 	}, level_mt)
 	
+	do
+		-- locate the entry and exit
+		local entry, exit = self.entry, self.exit
+		if dlvl_up then
+			local entry, exit = self.entry, self.exit
+			entry.x, entry.y = dlvl_up.exit.x, dlvl_up.exit.y
+		end
+		
+		exit.x, exit.y = entry.x, entry.y  -- force a random exit
+		while math.abs(exit.x - entry.x) + math.abs(exit.y - entry.y) < .3 * (width + height) do
+			exit.x, exit.y = math.random(0, width - 1), math.random(0, height - 1)
+		end
+	end
+
 	-- first, generate a set of rooms, and try to place as many as possible without overlapping
 	-- (random placement is ok)
 
@@ -345,18 +359,11 @@ local function new_level(width, height)
 	while true do -- almost always runs once, no worries
 		panic = panic - 1 -- well almost no worries
 		if panic == 0 then
-			return new_level(width, height)
+			return new_level(width, height, dlvl_up)
 		end
 
 		bigmask:set(self.entry.x, self.entry.y, 1)
-		bigmask:set(self.entry.x - 1, self.entry.y - 1, 0)
-		bigmask:set(self.entry.x - 1, self.entry.y, 0)
-		bigmask:set(self.entry.x - 1, self.entry.y + 1, 0)
-
 		bigmask:set(self.exit.x, self.exit.y, 1)
-		bigmask:set(self.exit.x + 1, self.exit.y - 1, 0)
-		bigmask:set(self.exit.x + 1, self.exit.y, 0)
-		bigmask:set(self.exit.x + 1, self.exit.y + 1, 0)
 
 		local zones = bigmask:zones(zonemap)
 		
@@ -438,8 +445,8 @@ local function new_level(width, height)
 		end
 	end)
 
-	rocks:set(self.entry.x - 1, self.entry.y, "stairs-up")
-	rocks:set(self.exit.x + 1, self.exit.y, "stairs-down")
+	rocks:set(self.entry.x, self.entry.y, "stairs-up")
+	rocks:set(self.exit.x, self.exit.y, "stairs-down")
 
 	-- we have already carved the map from the bigmask, so now we can use it
 	-- to track the places we have already decorated! (we'll set it back to 0

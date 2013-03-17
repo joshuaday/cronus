@@ -2,6 +2,17 @@
 
 local tiles, spawns
 
+local levels = {
+	{
+	}
+}
+
+local hordes = {
+	"ape ape ape ape ape",
+	"squid squid squid",
+	"eel eel eel"
+}
+
 local raw_tiles = {
 	void = {
 		glyph = "?!", fg = 0, bg = 5, -- black on magenta, ew
@@ -17,7 +28,7 @@ local raw_tiles = {
 
 	[ [[stairs-down]] ] = {
 		glyph = ">", fg = 11, bg = 5, blocking = true, transparency = 0.0,
-		stairs = true
+		interact = "down"
 	},
 
 
@@ -68,12 +79,17 @@ local raw_tiles = {
 	},
 
 	handle = {
-		glyph = "!", fg = 1, bg = 7, blocking = true, pushing = true,
+		glyph = "!", fg = 1, bg = 7, blocking = true, interact = "push",
 		transparency = 0.0
 	},
 
+	-- item tiles
 	weapon = {
 		glyph = "(", fg = 11, bg = nil,
+		transparency = 1.0, blocking = false,
+	},
+	tank = {
+		glyph = "!", fg = 11, bg = nil,
 		transparency = 1.0, blocking = false,
 	}
 }
@@ -110,7 +126,29 @@ local raw_spawns = {
 		must_stand = true, ai = "you",
 		health = 12, bagslots = 17
 	},
+	
+	ape = {
+		name = "nine-eyed macuaque", tile = {
+			glyph = "m", fg = 10,
+			transparency = 1.0, blocking = true
+		},
+		noises = [[eeeee,oo oo,SCRAW]],
+		attack_pattern = pattern.bump,
+		must_stand = true, ai = "ape",
+		health = 3
+	},
 
+	squid = {
+		name = "squid", tile = {
+			glyph = "s", fg = 15,
+			transparency = 1.0, blocking = true
+		},
+		noises = [[blub]],
+		attack_pattern = pattern.bump,
+		must_stand = true, ai = "eel",
+		health = 3
+	},
+	
 	titan = {
 		name = "bearded titan", tile = {
 			glyph = "T", fg = 11, 
@@ -183,6 +221,21 @@ local raw_spawns = {
 
 
 
+	air = {
+		name = "tank of air", tile = "tank", slot = "quaff",
+		must_stand = true, item = true
+	},
+	petn = {
+		name = "stick of PETN", tile = "tank", slot = "quaff",
+		must_stand = true, item = true
+	},
+
+	chisel = {
+		name = "chisel", tile = "weapon", slot = "wield",
+		attack_pattern = pattern.scythe,
+		must_stand = true, item = true
+	},
+
 	scythe = {
 		name = "scythe", tile = "weapon", slot = "wield",
 		attack_pattern = pattern.scythe,
@@ -254,7 +307,12 @@ local function index_spawns()
 		spawn.tile_idx = tile.idx
 		spawn.tile = tiles[tile.idx]
 
+		if type(spawn.noises) == "string" then
+			spawn.noises = spawn.noises:split ","
+		end
+
 		spawns[tag] = spawn
+		spawns[spawn.name] = spawn
 	end
 	return spawns
 end

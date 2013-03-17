@@ -1,6 +1,10 @@
 local Menu = { }
 
+-- this "dry run" idea isn't a bad one, but I think I'd rather do proper
+-- panels when I have the chance
+
 local ok_cancel = { {"o", "Ok"}, {"c", "Cancel"} }
+
 function Menu:dialog(term, prompt, options)
 	local termw, termh = term.getsize()
 
