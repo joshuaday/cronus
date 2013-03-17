@@ -6,16 +6,17 @@ local raw_tiles = {
 	void = {
 		glyph = "?!", fg = 0, bg = 5, -- black on magenta, ew
 		-- glyph = "#", fg = 1, bg = 7,
-		transparency = 0.0, blocking = true
+		transparency = 0.0, blocking = true,
+		complaint = "The unforgiving cold of Titan waits beyond."
 	},
 
 	[ [[stairs-up]] ] = {
-		glyph = "<", fg = 12, bg = 0, blocking = true, transparency = 0.0,
-		complaint = "The stairs are blocked."
+		glyph = "<", fg = 0, bg = 3, blocking = true, transparency = 0.0,
+		complaint = "The stairs back up are blocked."
 	},
 
 	[ [[stairs-down]] ] = {
-		glyph = "<", fg = 11, bg = 0, blocking = true, transparency = 0.0,
+		glyph = ">", fg = 11, bg = 5, blocking = true, transparency = 0.0,
 		stairs = true
 	},
 
@@ -111,8 +112,21 @@ local raw_spawns = {
 	},
 
 	titan = {
-		name = "elder titan", tile = {
+		name = "bearded titan", tile = {
 			glyph = "T", fg = 11, 
+			transparency = 1.0, blocking = true
+		},
+
+		noises = [[groan]],
+
+		attack_pattern = pattern.bump,
+		must_stand = true, ai = "troll",
+		health = 4
+	},
+
+	olympian = {
+		name = "olympian", tile = {
+			glyph = "O", fg = 11, 
 			transparency = 1.0, blocking = true
 		},
 

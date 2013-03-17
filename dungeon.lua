@@ -98,25 +98,34 @@ function level:overlap(cog, fn)
 		local cog_idx = self.top:get(x, y)
 		-- notice that if a cog appears in the overlap list, then the cell
 		-- it shares is not empty
-		while cog_idx ~= 0 do
-			local next_cog = self.cogs[cog_idx]
-			if next_cog ~= cog then
-				fn(next_cog, x, y)
+		if cog_idx == 0 then
+			-- must be outside the map!
+			fn(self.voidcog, x, y)
+		else
+			while cog_idx ~= 0 do
+				local next_cog = self.cogs[cog_idx]
+				if next_cog ~= cog then
+					fn(next_cog, x, y)
+				end
+				cog_idx = next_cog.down:get(x, y)
 			end
-			cog_idx = next_cog.down:get(x, y)
 		end
 	end)
 end
 
 function level:topmost(x, y, fn)
 	local cog_idx = self.top:get(x, y)
-	while cog_idx ~= 0 do
-		local next_cog = self.cogs[cog_idx]
-		local result = fn(next_cog, next_cog:get(x, y))
-		if result then
-			return result
+	if cog_idx == 0 then
+		return fn(self.voidcog, Catalog.tiles.void)
+	else
+		while cog_idx ~= 0 do
+			local next_cog = self.cogs[cog_idx]
+			local result = fn(next_cog, next_cog:get(x, y))
+			if result then
+				return result
+			end
+			cog_idx = next_cog.down:get(x, y)
 		end
-		cog_idx = next_cog.down:get(x, y)
 	end
 end
 
@@ -258,6 +267,8 @@ local function new_level(width, height)
 		top = Layer.new("int", width, height), -- the top cog in the cog stack for each tile
 		transparency = Layer.new("double", width, height),
 		fov = Layer.new("double", width, height),
+
+		voidcog = Cog.new(1, 1),
 
 		entry = {x = 2, y = math.floor(.5 * height)}, -- updated later if it's not 
 		exit = {x = width - 2, y = math.floor(.5 * height)} -- updated later if it's not 

@@ -109,7 +109,7 @@ function cog:say(msg)
 	Messaging:announce {
 		msg,
 		ttl = 1500, turn = true,
-		x = self.map.x2 - 1, y = self.map.y1 - 1,
+		x = self.map.x2 - 4, y = self.map.y1 - 2,
 		bg = 0, fg = 11
 	}
 end
