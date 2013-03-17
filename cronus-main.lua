@@ -5,6 +5,7 @@ local Menu = require "menu"
 local Cog = require "cog"
 
 _G.DEBUG_MODE = true
+ERRORED_OUT = false
 
 -- local pds = require "pds/pds"
 
@@ -28,7 +29,27 @@ local remap = {
 	sr = "K",
 	sf = "J",
 	sleft = "H",
-	sright = "L"
+	sright = "L",
+
+	ic = "i",
+	
+	home = "y",
+	[ [[end]] ] = "b",
+	ppage = "u",
+	npage = "n",
+
+	[ [[1]] ] = "b",
+	[ [[2]] ] = "j",
+	[ [[3]] ] = "n",
+	[ [[4]] ] = "h",
+	[ [[5]] ] = ".",
+	[ [[6]] ] = "l",
+	[ [[7]] ] = "y",
+	[ [[8]] ] = "k",
+	[ [[9]] ] = "u",
+	
+	f1 = "?",
+	help = "?"
 }
 
 term.settitle "Cogs of Cronus"
@@ -90,6 +111,11 @@ local function simulate(term)
 		if direction ~= nil then
 			auto.dir = direction
 			auto.you = you
+		else
+			if auto.you:autorun_stop_point(auto.dir) then
+				auto.time = nil
+				return
+			end
 		end
 		auto.you:automove(auto.dir[1], auto.dir[2])
 	end
@@ -103,9 +129,8 @@ local function simulate(term)
 
 		if key then
 			auto.time, auto.dir = nil, nil
+			Messaging:input()
 		end
-		
-		Messaging:input()
 
 		if auto.time and auto.time <= 0 then
 			autorun()
@@ -155,6 +180,12 @@ local function simulate(term)
 					you:manipulate(item, command)
 				end
 			end
+			if key == "t" then
+				you:say "The ceiling is too low to throw anything."
+			end
+			if key == "?" then
+				you:say "Help!"
+			end
 			if key == ">" then
 				-- temporary
 				dlvl = Dungeon.new_level(80, 24, dlvl)
@@ -168,6 +199,11 @@ local function simulate(term)
 	local last_time = term.getms()
 
 	local function protected()
+		if ERRORED_OUT then
+			auto.time = nil
+			ERRORED_OUT = false
+		end
+
 		dlvl:update()
 		dlvl:draw(term)
 		local next_animation_event = Messaging:draw(term, next_animation_event)
@@ -231,6 +267,8 @@ local function simulate(term)
 
 			term.at(0, y).fg(11).bg(4).print("-- press space to continue, Q to quit --").toend()
 		end
+		
+		ERRORED_OUT = true
 
 		repeat
 			local ch = term.getch()

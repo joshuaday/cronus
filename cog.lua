@@ -17,7 +17,7 @@ local function new_cog(width, height)
 	local self = setmetatable({
 		map = Layer.new("int", width, height),
 		down = Layer.new("int", width, height), -- the next cog down in the cog stack for each cell
-		x1 = 1, y1 = 1
+		x1 = 1, y1 = 1, priority = 1
 	}, cog_mt)
 	
 	return self
@@ -39,6 +39,7 @@ local function new_mob_cog(spawn_name)
 	self.active = spawn.ai ~= nil
 	self.health = spawn.health
 	self.name = spawn.name
+	self.priority = spawn.priority or 100
 
 	if spawn.bagslots then
 		self.bag = {slots = spawn.bagslots}
@@ -59,6 +60,7 @@ local function new_item_cog(spawn_name)
 	self.item = true
 	self.tile = tile
 	self.name = spawn.name
+	self.priority = spawn.priority or 99
 
 	if spawn.bagslots then
 		self.bag = {slots = spawn.bagslots}
@@ -109,7 +111,7 @@ function cog:moveto(x, y)
 	self.x1, self.y1 = x, y
 end
 
-local eight_ways = {{-1, -1}, {0, -1}, {1, -1}, {1, 0}, {1, 1}, {0, 1}, {-1, 1}, {-1, 0}}
+local eight_ways = {{-1, -1}, {0, -1}, {1, -1}, {1, 0}, {1, 1}, {0, 1}, {-1, 1}, {-1, 0}} -- todo merge these
 function cog:neighbors()
 	-- todo: extend to bigger cogs.  here's how:
 	--       any cog that you aren't _currently_ overlapping but
@@ -123,6 +125,38 @@ function cog:neighbors()
 		end
 	end
 	return n
+end
+
+function cog:autorun_stop_point(dir)
+	-- this cog is moving in direction dir and wonders whether this is a good place
+	-- to stop.  rather incomplete.
+
+	-- for now, just do a 1x1 lookup (SUNDAY)
+	-- cog.dlvl:attach_floormap(cog)
+
+	-- scan eight directions from the player to see if this
+	-- is a place to stop running
+	local dlvl = self.dlvl
+
+	if dlvl.blocking:get(self.x1 + dir[1], self.y1 + dir[2]) > 0 then
+		return true 
+	end
+
+	if dir[1] ~= 0 and dir[2] ~= 0 then
+		if dlvl.blocking:get(self.x1 + dir[1], self.y1) == 2
+		   and dlvl.blocking:get(self.x1, self.y1 + dir[2]) == 2 
+		then
+			return true
+		end
+	end
+
+	for i = 1, 8 do
+		local dx, dy = eight_ways[i][1], eight_ways[i][2]
+		if dx ~= dir[x] or dy ~= dir[y] then
+			-- look forward
+		end
+	end
+	return false
 end
 
 function cog:known()
@@ -306,7 +340,7 @@ function cog:push(dx, dy)
 			if tile.interact then
 				interaction, interacting = tile.interact, cog
 			end
-			if tile.blocking then
+			if tile.blocking > 0 then
 				blocked = true
 			end
 		end)

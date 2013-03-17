@@ -19,7 +19,10 @@ local FOV_OFF = false
 function level:refresh()
 	-- clear the level to void
 	self.transparency:zero()
+	self.blocking:zero()
 	self.top:zero()
+
+	self.blocking:set_default(1) -- obstructions outside
 
 	self.fg:zero()
 	self.bg:zero()
@@ -86,7 +89,6 @@ function level:update()
 	end
 end
 
-
 function level:toggle_setting(name)
 	if DEBUG_MODE then
 		if name == "omniscience" then
@@ -108,6 +110,33 @@ function level:cogs_at(x, y)
 		end
 
 		return cog
+	end
+end
+
+function level:attach_floormap(cog)
+	if cog.width == 1 and cog.height == 1 then
+		return self.blocking
+	end
+
+	-- if the cog has a map already
+	if not cog.floormap then
+		cog.floormap = Layer.new("int", self.width, self.height)
+	else
+		cog.floormap:zero()
+	end
+
+	-- 0: ok to walk here
+	-- 1: not ok to stand here
+	-- 2: not ok to take this diagonal
+
+	for y = 1, self.height do
+		for x = 1, self.width do
+			-- check the cells here and, for now, assume that all non-void cells
+			-- in the creature have the same obstruction settings (true for the
+			-- moment; when it ceases to be true, we'll modify)
+
+			
+		end
 	end
 end
 
@@ -173,6 +202,7 @@ function level.stamp(level, cog)
 			end
 
 			level.transparency:set(x, y, tile.transparency)
+			level.blocking:set(x, y, tile.blocking)
 			
 			-- update the level's properties (or maybe wait until we actually need them, using the down list?)
 		end
@@ -238,7 +268,14 @@ function level:addcog(cog)
 		if cog.dlvl then
 			cog.dlvl:removecog(cog)
 		end
-		self.cogs[1 + #self.cogs] = cog
+
+		local ins = #self.cogs
+		while ins > 0 and self.cogs[ins].priority > cog.priority do
+			ins = ins - 1
+		end
+
+		table.insert(self.cogs, ins + 1, cog)
+		-- self.cogs[1 + #self.cogs] = cog
 		self.turnorder[1 + #self.turnorder] = cog -- give it a turn (the dispatcher will ignore it if it can't take turns)
 		cog.dlvl = self
 	end
@@ -286,6 +323,7 @@ local function new_level(width, height, dlvl_up)
 
 		top = Layer.new("int", width, height), -- the top cog in the cog stack for each tile
 		transparency = Layer.new("double", width, height),
+		blocking = Layer.new("int", width, height), -- actually a bitfield
 		fov = Layer.new("double", width, height),
 
 		voidcog = Cog.new(1, 1),

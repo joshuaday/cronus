@@ -165,7 +165,7 @@ local function adapter()
 
 		local function startcurses()
 			local stdscr = ncurses.initscr()
-			ncurses.raw()
+			-ncurses.raw()
 			ncurses.noecho()
 			ncurses.cbreak()
 			ncurses.curs_set(0)
