@@ -127,6 +127,22 @@ function cog:neighbors()
 	return n
 end
 
+function cog:can_stand_at(x, y)
+	local blocked = false
+	local oldx, oldy = x, y
+	self:moveto(x, y)
+	
+	self.dlvl:overlap(self, function (cog, x, y)
+		local tile = cog:gettile(x, y)
+		if tile.blocking > 0 then
+			blocked = true
+		end
+	end)
+	self:moveto(oldx, oldy)
+
+	return not blocked
+end
+
 function cog:may_take_step(dx, dy)
 	local dlvl = self.dlvl
 
@@ -154,6 +170,10 @@ function cog:autorun_stop_point(dir)
 
 	-- scan eight directions from the player to see if this
 	-- is a place to stop running
+
+	if dir[1] == 0 and dir[2] == 0 then
+		return false
+	end
 
 	if not self:may_take_step(dir[1], dir[2]) then
 		return true

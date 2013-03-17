@@ -17,7 +17,9 @@ local compass = {
 	y = {-1, -1},
 	u = {1, -1},
 	b = {-1, 1},
-	n = {1, 1}
+	n = {1, 1},
+
+	z = {0, 0}
 }
 
 local remap = {
@@ -69,11 +71,6 @@ you:pickup(Cog.item "petn")
 
 -- local rock = dlvl:spawn "handle"
 -- rock:moveto(14, 14)
-
-for i = 1, 9 do
-	local mob = dlvl:spawn "ape"
-	mob:moveto(17 + 3 * i, 14)
-end
 
 --[[
 for i = 1, 13 do

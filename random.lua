@@ -6,6 +6,8 @@ local rng = math.random
 
 function random.index(arr) return rng(#arr) end
 
+function random.pick(arr) return arr[rng(#arr)] end
+
 function random.gauss(mean, stdev)
 	local x, y = rng(), rng()
 

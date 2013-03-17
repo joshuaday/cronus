@@ -295,15 +295,52 @@ end
 
 function level:spawn(name)
 	local dude = Cog.mob(name)
-	dude:moveto(30, 12)
+	dude:moveto(self.width + 1, self.height + 1) -- start it off the map
 	self:addcog(dude)
 
-	range = 13
-	dude.fov = Layer.new("double", range * 2 + 1, range * 2 + 1)
-	dude.fov_mask = Mask.circle(range * 2 + 1, range * 2 + 1)
+	local range = 13
+	if dude.info.ai == "you" then
+		dude.fov = Layer.new("double", range * 2 + 1, range * 2 + 1)
+		dude.fov_mask = Mask.circle(range * 2 + 1, range * 2 + 1)
+	end
 	dude.team = "dungeon"
 	
 	return dude
+end
+
+local function smart_spawn_horde(self, horde)
+	self:refresh()
+	
+	local monsters = horde:split " "
+
+	-- spawn all the guys
+	for i = 1, #monsters do
+		monsters[i] = self:spawn(monsters[i])
+	end
+
+	-- find a safe place for the each monster in the horde
+	local w, h = self.width, self.height
+	local x, y = math.random(w), math.random(h)
+
+	for i = 1, #monsters do
+		for tries = 1, 10 do
+			if monsters[i]:can_stand_at(x, y) then
+				monsters[i]:moveto(x, y)
+				x, y = x + math.random(-2, 2), math.random(-2, 2)
+				break
+			else
+				x, y = x + math.random(-2, 2), math.random(-2, 2)
+				if x < 0 then x = 6 end
+				if y < 0 then y = 6 end
+				if x > w then x = w - 6 end
+				if y > h then y = h - 6 end
+
+				if tries == 10 then
+					self:removecog(monsters[i])
+				end
+			end
+		end
+	end
 end
 
 local function new_level(width, height, dlvl_up)
@@ -354,8 +391,10 @@ local function new_level(width, height, dlvl_up)
 
 	local floor = Cog.new(width, height)
 	local rocks = Cog.new(width, height)
+	local decor = Cog.new(width, height)
 
 	self:addcog(floor)
+	self:addcog(decor)
 	self:addcog(rocks)
 
 	local rooms = { } -- masks
@@ -374,7 +413,7 @@ local function new_level(width, height, dlvl_up)
 	end
 
 	--local ss_seq = {0, 0, 0, 30, 3, 3, 3, 0, 0, 2}
-	local ss_seq = {0, 0, 20, 0, 0, 5, 11}
+	local ss_seq = {0, 0, 20, 0, 0, 5}
 	local ss, numsofar = #ss_seq, 0
 	
 	while true do
@@ -486,7 +525,7 @@ local function new_level(width, height, dlvl_up)
 		rocks:fill("redwall")
 
 		local floors, walls = prototype.floors, prototype.walls
-		local sigma, turbulence = 60, .7
+		local sigma, turbulence = 15, 0.80
 		local sediment = Marble.displace(
 			Marble.bands(128, 128, 15, 2 * math.pi * math.random()):moveto(-30, -30),
 			Marble.midpoint(128, 128, sigma, turbulence),
@@ -520,8 +559,30 @@ local function new_level(width, height, dlvl_up)
 
 	-- now splash a bunch of foliage and stuff onto the floor
 
-	local function splash_somewhere(decoration)
+	local decormask = bigmask:clone()
+
+	local function splash_some(decoration, amt)
+		local x, y = math.random(self.width), math.random(self.height)
+		amt = amt or math.random(9, 12)
+		for accept, x, y in workspace:spill(x, y) do
+			if amt > 0 and decormask:get(x, y) == 1.0 then
+				accept()
+				decormask:set(x, y, 0.0)
+				decor:set(x, y, decoration) -- todo : speed up lookups
+				amt = amt - 1
+			end
+		end
 	end
+	splash_some("ice", 30)
+	splash_some("ice", 30)
+	splash_some("ice", 30)
+	splash_some("water", 90)
+	splash_some("water", 90)
+	splash_some("bushes", 12)
+	splash_some("bushes", 12)
+	splash_some("bushes", 12)
+	splash_some("bushes", 12)
+	splash_some("bushes", 12)
 	
 
 
@@ -534,6 +595,9 @@ local function new_level(width, height, dlvl_up)
 
 	Puzzle.puzzlify(self, bigmask)
 
+	for i = 1, 5 do
+		smart_spawn_horde(self, random.pick(prototype.hordes))
+	end
 
 	-- finally, get the map ready for use and return it
 	self:refresh()

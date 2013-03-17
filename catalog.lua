@@ -8,7 +8,9 @@ local levels = {
 		floors = ("redfloor redfloor brownfloor grayfloor brownfloor"):split" ",
 		walls = ("redwall redwall brownwall graywall brownfloor"):split " ",
 		hordes = {
-			"ape ape ape ape ape",
+			"ape",
+			"ape ape",
+			"eel eel",
 		}
 	},
 	{
@@ -21,14 +23,12 @@ local levels = {
 	},
 }
 
-local hordes = {
-	"squid squid squid",
-	"eel eel eel"
-}
-
--- blocking:
--- 1  blocks everything, but only from entering
--- 2  blocks everything and forbids squeezing
+-- tile content flags:
+-- 1   blocks everything, but only from entering
+-- 2   blocks everything and forbids squeezing
+-- 4   blocks non-watery
+-- 8   blocks non-flying
+-- 16  blocks non-firey
 
 local raw_tiles = {
 	void = {
@@ -48,10 +48,13 @@ local raw_tiles = {
 		interact = "down"
 	},
 
-
 	water = {
 		glyph = "~", fg = 12, bg = 4, blocking = 0,
 		transparency = 1.0
+	},
+	ice = {
+		glyph = "-", fg = 12, bg = 6, blocking = 0,
+		transparency = 1.0, slick = true
 	},
 
 	redfloor = {
@@ -83,9 +86,20 @@ local raw_tiles = {
 		transparency = 0.0,
 		complaint = "The stone is cool and unyielding."
 	},
+	crystal = {
+		glyph = "#", fg = 15, bg = 6, blocking = 2,
+		transparency = 1.0,
+		complaint = "Light refracts gloriously through the crystal's facets."
+	},
 
 	-- need cryovolcanoes!
 
+
+	tree = {
+		glyph = "&", fg = 2, bg = 0,
+		transparency = 0.0, blocking = 1,
+		complaint = "The growth feels pulpy and unpleasant."
+	},
 
 	bushes = {
 		glyph = "\"", fg = 2, bg = 0,
@@ -151,6 +165,27 @@ local raw_spawns = {
 		must_stand = true, ai = "ape",
 		health = 3
 	},
+	pango = {
+		name = "promethean pangolin", tile = {
+			glyph = "m", fg = 12,
+			transparency = 1.0, blocking = 1
+		},
+		noises = [[roo hrr]],
+		attack_pattern = pattern.bump,
+		must_stand = true, ai = "ape",
+		health = 5
+	},
+
+
+	eel = {
+		name = "dielectric eel", tile = {
+			glyph = "e", fg = 15,
+			transparency = 1.0, blocking = 1
+		},
+		attack_pattern = pattern.bump,
+		must_stand = true, ai = "eel",
+		health = 3
+	},
 
 	squid = {
 		name = "squid", tile = {
@@ -161,6 +196,16 @@ local raw_spawns = {
 		attack_pattern = pattern.bump,
 		must_stand = true, ai = "eel",
 		health = 3
+	},
+
+	spider = {
+		name = "spider", tile = {
+			glyph = "S", fg = 0,
+			transparency = 1.0, blocking = 2
+		},
+		attack_pattern = pattern.bump,	
+		must_stand = true, ai = "troll",
+		health = 9
 	},
 	
 	titan = {
@@ -238,50 +283,42 @@ local raw_spawns = {
 
 local raw_items = {
 	air = {
-		name = "tank of air", tile = "tank", slot = "quaff",
-		must_stand = true
+		name = "tank of air", tile = "tank", slot = "quaff"
 	},
 	petn = {
-		name = "stick of PETN", tile = "tank", slot = "quaff",
-		must_stand = true
+		name = "stick of PETN", tile = "tank", slot = "quaff"
 	},
 
 	chisel = {
 		name = "chisel", tile = "weapon", slot = "wield",
-		attack_pattern = pattern.scythe,
-		must_stand = true
+		attack_pattern = pattern.scythe
 	},
 
 	scythe = {
 		name = "scythe", tile = "weapon", slot = "wield",
-		attack_pattern = pattern.scythe,
-		must_stand = true
+		attack_pattern = pattern.scythe
 	},
 
 	lance = {
 		name = "lance", tile = "weapon", slot = "wield",
-		attack_pattern = pattern.lance,
-		must_stand = true
+		attack_pattern = pattern.lance
 	},
 
 	rapier = {
 		name = "rapier", tile = "weapon", slot = "wield",
-		attack_pattern = pattern.lunge,
-		must_stand = true
+		attack_pattern = pattern.lunge
 	},
 	
 	holowhip = {
 		name = "holowhip", tile = "weapon", slot = "wield",
 		attack_pattern = pattern.checkers,
 		description = [[
-		]],
-		must_stand = true
+		]]
 	},
 	
 	cleaver = {
 		name = "cleaver", tile = "weapon", slot = "wield",
-		attack_pattern = pattern.backthrow,
-		must_stand = true
+		attack_pattern = pattern.backthrow
 	}
 }
 
