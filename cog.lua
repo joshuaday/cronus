@@ -49,7 +49,7 @@ local function new_mob_cog(spawn_name)
 end
 
 local function new_item_cog(spawn_name)
-	local spawn = Catalog.items[spawn_name]
+	local spawn = type(spawn_name) == "string" and Catalog.items[spawn_name] or spawn_name
 	local tile = spawn.tile
 
 	-- items are ALWAYS 1x1

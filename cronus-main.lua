@@ -49,6 +49,12 @@ local remap = {
 	[ [[7]] ] = "y",
 	[ [[8]] ] = "k",
 	[ [[9]] ] = "u",
+
+	a1 = "y",
+	a3 = "u",
+	b2 = ".",
+	c1 = "b",
+	c3 = "n",
 	
 	f1 = "?",
 	help = "?"
@@ -56,9 +62,40 @@ local remap = {
 
 term.settitle "Cogs of Cronus"
 
-Messaging:announce {
-[[The rift slams shut behind you
-but air is seeping out.]], ttl = 2200}
+local function tell_story()
+	story = {
+		{
+			"You are a prospector on Titan, near Xanadu."
+		}, {
+			"You are trapped in a strange cave, warm",
+			"and with Earth-like air."
+		}, {
+			"There's a faint radio signal down below.",
+			"If you can find the transmitter, you can",
+			"probably call for help."
+		}
+	}
+
+	local chunk_idx = 1
+
+	local function continue()
+		local chunk = story[chunk_idx]
+		if chunk then
+			for i = 1, #chunk do
+				local msg = {chunk[i], ttl = 1500 + 400 * #chunk, y = 4 + i, turn = true}
+				if i == #chunk then
+					msg.cb = continue
+				end
+				Messaging:announce (msg)
+			end
+		end
+		chunk_idx = chunk_idx + 1
+	end
+
+	continue()
+end
+
+tell_story()
 
 local dlvl = Dungeon.new_level(80, 24)
 local you = dlvl:spawn "rogue"
@@ -68,20 +105,7 @@ you.team = "player"
 you:pickup(Cog.item "chisel")
 you:pickup(Cog.item "tank of air")
 you:pickup(Cog.item "petn")
-
--- local rock = dlvl:spawn "handle"
--- rock:moveto(14, 14)
-
---[[
-for i = 1, 13 do
-	local mob = dlvl:spawn "scythe"
-	mob:moveto(11 + i, 14 - 1)
-end
-for i = 14, 27 do
-	local mob = dlvl:spawn "rapier"
-	mob:moveto(11 + i, 14 - 1)
-end
-]]
+you:pickup(Cog.item "radio")
 
 you.is_player = true
 
@@ -239,7 +263,10 @@ local function simulate(term)
 
 	local function protection(msg)
 		local traceback = string.split(debug.traceback(msg, 2), "\n")
-		term.clip(0, 0, 80, 22)
+		term.clip(0, 0, 80, 24)
+		term.mask(false)
+		term.dryrun(false)
+
 		for i = 1, 2 do
 			if i == 1 then
 				term.dryrun(true)

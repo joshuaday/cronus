@@ -39,12 +39,13 @@ local raw_tiles = {
 	},
 
 	[ [[stairs-up]] ] = {
-		glyph = "<", fg = 0, bg = 3, blocking = 1, transparency = 0.0,
+		-- I want the stairs to block, but there are generation issues
+		glyph = "<", fg = 0, bg = 3, blocking = 0, transparency = 0.0,
 		complaint = "The stairs back up are blocked."
 	},
 
 	[ [[stairs-down]] ] = {
-		glyph = ">", fg = 11, bg = 5, blocking = 1, transparency = 0.0,
+		glyph = ">", fg = 11, bg = 5, blocking = 0, transparency = 0.0,
 		interact = "down"
 	},
 
@@ -119,6 +120,14 @@ local raw_tiles = {
 	tank = {
 		glyph = "!", fg = 11, bg = nil,
 		transparency = 1.0, blocking = 0,
+	},
+	detonator = {
+		glyph = "?", fg = 11, bg = nil,
+		transparency = 1.0, blocking = 0
+	},
+	trinket = {
+		glyph = "*", fg = 11, bg = nil,
+		transparency = 1.0, blocking = 0
 	}
 }
 
@@ -256,6 +265,18 @@ local raw_spawns = {
 		health = 16
 	},
 
+	
+	siarnaqean = {
+		name = "siarnaqean pohlsepid", tile = {
+			glyph = "o", fg = 0,
+			transparency = 1.0, blocking = 2
+		},
+		attack_pattern = pattern.bump,
+		must_stand = true, ai = "eel",	
+		health = 6
+	},
+	
+
 	borer = {
 		name = "callistonian borer", tile = {
 			glyph = "C", fg = 7,
@@ -279,46 +300,59 @@ local raw_spawns = {
 }
 
 
-
-
 local raw_items = {
+	macguffin = {
+		name = "Huygens S-band Radio", tile = "trinket", slot = "victory", SCORE = 0
+	},
 	air = {
 		name = "tank of air", tile = "tank", slot = "quaff"
+	},
+	radio = {
+		name = "remote detonator", tile = "detonator", slot = "quaff"
+	},
+	timer = {
+		name = "timed detonator", tile = "detonator", slot = "quaff"
 	},
 	petn = {
 		name = "stick of PETN", tile = "tank", slot = "quaff"
 	},
+	c4 = {
+		name = "stick of C-4", tile = "tank", slot = "quaff"
+	},
+	incendiary = {
+		name = "incendiary charge", tile = "tank", slot = "quaff"
+	},
 
 	chisel = {
 		name = "chisel", tile = "weapon", slot = "wield",
-		attack_pattern = pattern.scythe
+		attack_pattern = pattern.scythe, SCORE = .2
 	},
 
 	scythe = {
 		name = "scythe", tile = "weapon", slot = "wield",
-		attack_pattern = pattern.scythe
+		attack_pattern = pattern.scythe, SCORE = .2
 	},
 
 	lance = {
 		name = "lance", tile = "weapon", slot = "wield",
-		attack_pattern = pattern.lance
+		attack_pattern = pattern.lance, SCORE = .2
 	},
 
 	rapier = {
 		name = "rapier", tile = "weapon", slot = "wield",
-		attack_pattern = pattern.lunge
+		attack_pattern = pattern.lunge, SCORE = .2
 	},
 	
 	holowhip = {
 		name = "holowhip", tile = "weapon", slot = "wield",
 		attack_pattern = pattern.checkers,
 		description = [[
-		]]
+		]], SCORE = .2
 	},
 	
 	cleaver = {
 		name = "cleaver", tile = "weapon", slot = "wield",
-		attack_pattern = pattern.backthrow
+		attack_pattern = pattern.backthrow, SCORE = .2
 	}
 }
 
@@ -346,6 +380,7 @@ end
 
 local function index_spawns(raw_spawns)
 	local spawns = {}
+	local SCORE = 0
 	for tag, spawn in pairs(raw_spawns) do
 		local tile = spawn.tile
 		if type(spawn.tile) == "string" then
@@ -363,6 +398,9 @@ local function index_spawns(raw_spawns)
 		spawn.tile_idx = tile.idx
 		spawn.tile = tiles[tile.idx]
 
+		spawn.SCORE = spawn.SCORE or 1
+		SCORE = SCORE + spawn.SCORE
+
 		if type(spawn.noises) == "string" then
 			spawn.noises = spawn.noises:split ","
 		end
@@ -370,6 +408,8 @@ local function index_spawns(raw_spawns)
 		spawns[tag] = spawn
 		spawns[spawn.name] = spawn
 	end
+
+	spawns.SCORE = SCORE -- used for picking a random item to spawn
 	return spawns
 end
 

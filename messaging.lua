@@ -6,8 +6,8 @@ function Messaging:announce(msg)
 	log[1 + #log] = msg
 
 	msg.ttl = type(msg.ttl) == "number" and msg.ttl or 2000
-	msg.x = msg.x or 0
-	msg.y = msg.y or 0
+	msg.x = msg.x or 1
+	msg.y = msg.y or 1
 	msg.fg = msg.fg or 15
 	msg.bg = msg.bg or 0
 end
@@ -24,6 +24,9 @@ function Messaging:time_spent(ms)
 
 			log[i].ttl = log[i].ttl - ms
 			if log[i].ttl <= 0 then
+				if log[i].cb then
+					log[i]:cb()
+				end
 				table.remove(log, i)
 				i = i - 1
 			end

@@ -6,7 +6,21 @@ local rng = math.random
 
 function random.index(arr) return rng(#arr) end
 
-function random.pick(arr) return arr[rng(#arr)] end
+function random.pick(arr) 
+	if arr.SCORE then
+		local u = rng() * arr.SCORE
+		for k, v in pairs(arr) do
+			if type(v) == "table" then
+				u = u - v.SCORE
+				if u <= 0 then
+					return v
+				end
+			end
+		end
+	else
+		return arr[rng(#arr)]
+	end
+end
 
 function random.gauss(mean, stdev)
 	local x, y = rng(), rng()
