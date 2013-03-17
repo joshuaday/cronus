@@ -233,6 +233,8 @@ function layer:clone()
 	local copy = new_layer(self.ctype, self.width, self.height)
 	copy:moveto(self.x1, self.y1)
 	ffi.copy(copy.cells, self.cells, ffi.sizeof(self.cells))
+
+	return copy
 end
 
 

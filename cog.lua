@@ -34,10 +34,10 @@ local function new_mob_cog(spawn_name)
 	--self.map:set(3, 1, Catalog:idx(tile_type))
 	--self.map:set(3, 3, Catalog:idx(tile_type))
 
+	self.info = spawn
 	self.tile = tile
 	self.active = spawn.ai ~= nil
 	self.health = spawn.health
-	self.item = spawn.item
 	self.name = spawn.name
 
 	if spawn.bagslots then
@@ -45,6 +45,27 @@ local function new_mob_cog(spawn_name)
 	end
 
 	return self
+end
+
+local function new_item_cog(spawn_name)
+	local spawn = Catalog.items[spawn_name]
+	local tile = spawn.tile
+
+	-- items are ALWAYS 1x1
+	local self = new_cog(1, 1)
+	self.map:set(1, 1, spawn.tile.idx)
+
+	self.info = spawn
+	self.item = true
+	self.tile = tile
+	self.name = spawn.name
+
+	if spawn.bagslots then
+		self.bag = {slots = spawn.bagslots}
+	end
+
+	return self
+	
 end
 
 function cog:each(fn)
@@ -104,14 +125,27 @@ function cog:neighbors()
 	return n
 end
 
+function cog:known()
+	local known = false
+	if self.dlvl then
+		self:each(function(t, x, y, idx)
+			if self.dlvl.fov:get(x, y) > 0 then
+				known = true
+			end
+		end)
+	end
+	return known
+end
 
 function cog:say(msg)
-	Messaging:announce {
-		msg,
-		ttl = 1500, turn = true,
-		x = self.map.x2 - 4, y = self.map.y1 - 2,
-		bg = 0, fg = 11
-	}
+	if self:known() then
+		Messaging:announce {
+			msg,
+			ttl = 1500, turn = true,
+			x = self.map.x2 - 4, y = self.map.y1 - 2,
+			bg = 0, fg = 11
+		}
+	end
 end
 
 function cog:attack(victim)
@@ -298,6 +332,7 @@ end
 
 return {
 	new = new_cog,
-	mob = new_mob_cog
+	mob = new_mob_cog,
+	item = new_item_cog
 }
 

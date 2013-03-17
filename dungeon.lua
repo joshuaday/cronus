@@ -7,6 +7,7 @@ local Gen = require "gen"
 local Fov = require "fov"
 local Mask = require "mask"
 local Marble = require "marble"
+local Puzzle = require "puzzle"
 
 local level = { }
 local level_mt = { __index = level }
@@ -72,11 +73,28 @@ function level:update()
 			else
 				-- automatically play the mob!
 				mob:automove(math.random(-1, 1), math.random(-1, 1))
+				if mob.info.noises and math.random(1,40) == 1 then
+					mob:say(mob.info.noises[random.index(mob.info.noises)])
+				end
+
 				mob.has_initiative = false
 				self.going = nil
 			end
 
 			visited[mob] = true
+		end
+	end
+end
+
+
+function level:toggle_setting(name)
+	if DEBUG_MODE then
+		if name == "omniscience" then
+			FOV_OFF = not FOV_OFF
+		end
+
+		if self.going then
+			self.going:say("toggled " .. name)
 		end
 	end
 end
@@ -384,6 +402,7 @@ local function new_level(width, height, dlvl_up)
 			local progress = false
 
 			-- todo : this is horrifically slow; speed it up
+			-- todo : also, move it elsewhere
 			for zonenum = 1, #zones do
 				local zone = zones[zonenum]
 				if zone.value == 1 then
@@ -423,6 +442,7 @@ local function new_level(width, height, dlvl_up)
 
 	-- decorate the rocks and the floor!
 	do
+		-- not going to lie: these two lines shouldn't be necessary
 		floor:fill("redfloor")
 		rocks:fill("redwall")
 
@@ -473,7 +493,7 @@ local function new_level(width, height, dlvl_up)
 	-- other.
 	
 
-
+	Puzzle.puzzlefy(self, bigmask)
 
 
 	-- finally, get the map ready for use and return it

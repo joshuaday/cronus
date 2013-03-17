@@ -6,17 +6,22 @@ local levels = {
 	{
 		rooms = ([[30*splash-50;30*splash-30]]),
 		floors = ("redfloor redfloor brownfloor grayfloor brownfloor"):split" ",
-		walls = ("redwall redwall brownwall graywall brownfloor"):split " "
+		walls = ("redwall redwall brownwall graywall brownfloor"):split " ",
+		hordes = {
+			"ape ape ape ape ape",
+		}
 	},
 	{
 		rooms = ([[30*splash-50;30*splash-30]]),
 		floors = ("redfloor redfloor brownfloor grayfloor grayfloor brownfloor"):split" ",
-		walls = ("redwall redwall brownwall graywall graywall brownfloor"):split " "
+		walls = ("redwall redwall brownwall graywall graywall brownfloor"):split " ",
+		hordes = {
+			"ape ape ape ape ape",
+		}
 	},
 }
 
 local hordes = {
-	"ape ape ape ape ape",
 	"squid squid squid",
 	"eel eel eel"
 }
@@ -133,7 +138,7 @@ local raw_spawns = {
 	},
 	
 	ape = {
-		name = "nine-eyed macuaque", tile = {
+		name = "nine-eyed macauque", tile = {
 			glyph = "m", fg = 10,
 			transparency = 1.0, blocking = true
 		},
@@ -222,41 +227,43 @@ local raw_spawns = {
 		must_stand = true, ai = "troll",
 		health = 16
 	},
+}
 
 
 
 
+local raw_items = {
 	air = {
 		name = "tank of air", tile = "tank", slot = "quaff",
-		must_stand = true, item = true
+		must_stand = true
 	},
 	petn = {
 		name = "stick of PETN", tile = "tank", slot = "quaff",
-		must_stand = true, item = true
+		must_stand = true
 	},
 
 	chisel = {
 		name = "chisel", tile = "weapon", slot = "wield",
 		attack_pattern = pattern.scythe,
-		must_stand = true, item = true
+		must_stand = true
 	},
 
 	scythe = {
 		name = "scythe", tile = "weapon", slot = "wield",
 		attack_pattern = pattern.scythe,
-		must_stand = true, item = true
+		must_stand = true
 	},
 
 	lance = {
 		name = "lance", tile = "weapon", slot = "wield",
 		attack_pattern = pattern.lance,
-		must_stand = true, item = true
+		must_stand = true
 	},
 
 	rapier = {
 		name = "rapier", tile = "weapon", slot = "wield",
 		attack_pattern = pattern.lunge,
-		must_stand = true, item = true
+		must_stand = true
 	},
 	
 	holowhip = {
@@ -264,13 +271,13 @@ local raw_spawns = {
 		attack_pattern = pattern.checkers,
 		description = [[
 		]],
-		must_stand = true, item = true
+		must_stand = true
 	},
 	
 	cleaver = {
 		name = "cleaver", tile = "weapon", slot = "wield",
 		attack_pattern = pattern.backthrow,
-		must_stand = true, item = true
+		must_stand = true
 	}
 }
 
@@ -294,7 +301,7 @@ local function index_tiles()
 	return tiles
 end
 
-local function index_spawns()
+local function index_spawns(raw_spawns)
 	local spawns = {}
 	for tag, spawn in pairs(raw_spawns) do
 		local tile = spawn.tile
@@ -332,14 +339,16 @@ local function tile(self, name)
 end
 
 tiles = index_tiles()
-spawns = index_spawns()
+spawns = index_spawns(raw_spawns)
+items = index_spawns(raw_items)
 
 return {
 	levels = levels,
-	hordes = hordes,
 
 	tiles = tiles,
 	spawns = spawns,
+	items = items,
+
 	idx = idx,
 	tile = tile
 }

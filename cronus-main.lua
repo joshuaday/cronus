@@ -2,6 +2,9 @@ local term = require "terminal"
 local Dungeon = require "dungeon"
 local Messaging = require "messaging"
 local Menu = require "menu"
+local Cog = require "cog"
+
+_G.DEBUG_MODE = true
 
 -- local pds = require "pds/pds"
 
@@ -16,6 +19,18 @@ local compass = {
 	n = {1, 1}
 }
 
+local remap = {
+	up = "k",
+	down = "j",
+	left = "h",
+	right = "l",
+
+	sr = "K",
+	sf = "J",
+	sleft = "H",
+	sright = "L"
+}
+
 term.settitle "Cogs of Cronus"
 
 Messaging:announce {
@@ -26,9 +41,9 @@ local dlvl = Dungeon.new_level(80, 24)
 local you = dlvl:spawn "rogue"
 you:moveto(dlvl.entry.x, dlvl.entry.y)
 
-you:pickup(dlvl:spawn "chisel")
-you:pickup(dlvl:spawn "tank of air")
-you:pickup(dlvl:spawn "petn")
+you:pickup(Cog.item "chisel")
+you:pickup(Cog.item "tank of air")
+you:pickup(Cog.item "petn")
 
 -- local rock = dlvl:spawn "handle"
 -- rock:moveto(14, 14)
@@ -81,6 +96,9 @@ local function simulate(term)
 
 	local function interactiveinput(you, waitms)
 		local key, code = term.getch(waitms)
+		if remap[key] then
+			key = remap[key]
+		end
 		-- playerturn(player, key)
 
 		if key then
@@ -103,7 +121,16 @@ local function simulate(term)
 			paused = not paused
 		end
 
+		if key == "btab" then
+			dlvl:toggle_setting "omniscience"
+			return
+		end
+
 		if you then
+			if key and #key > 1 and DEBUG_MODE then
+				you:say(key)
+			end
+
 			if key == "." then
 				you:automove(0, 0)
 			end
