@@ -49,7 +49,7 @@ local function puzzlify(dlvl, floormask)
 
 	for i = 1, 15 do
 		local door = Cog.new(1, 1)
-		door:set(1, 1, "boulder")
+		door:set(1, 1, "door")
 		place_piece(dlvl, door)
 	end
 	

@@ -10,7 +10,7 @@ local levels = {
 		hordes = {
 			"ape",
 			"ape ape",
-			"eel eel",
+			"eel",
 		}
 	},
 	{
@@ -18,9 +18,57 @@ local levels = {
 		floors = ("redfloor redfloor brownfloor grayfloor grayfloor brownfloor"):split" ",
 		walls = ("redwall redwall brownwall graywall graywall brownfloor"):split " ",
 		hordes = {
-			"ape ape ape ape ape",
+			"ape ape ape",
+			"pangolin",
+			"eel eel"
 		}
 	},
+	{
+		rooms = ([[30*splash-50;30*splash-30]]),
+		floors = ("redfloor redfloor brownfloor grayfloor grayfloor brownfloor"):split" ",
+		walls = ("redwall redwall brownwall graywall graywall brownfloor"):split " ",
+		hordes = {
+			"pangolin pangolin",
+			"eel eel eel",
+			"borer"
+		}
+	},
+	{
+		rooms = ([[30*splash-50;30*splash-30]]),
+		floors = ("redfloor redfloor brownfloor grayfloor grayfloor brownfloor"):split" ",
+		walls = ("redwall redwall brownwall graywall graywall brownfloor"):split " ",
+		hordes = {
+			"ape ape",
+			"squid squid eel",
+			"titan",
+			"borer"
+		}
+	},
+	{
+		rooms = ([[30*splash-50;30*splash-30]]),
+		floors = ("redfloor redfloor brownfloor grayfloor grayfloor brownfloor"):split" ",
+		walls = ("redwall redwall brownwall graywall graywall brownfloor"):split " ",
+		hordes = {
+			"borer",
+			"olympian",
+			"titan titan",
+			"horror"
+		}
+	},
+	{
+		rooms = ([[30*splash-50;30*splash-30]]),
+		floors = ("redfloor redfloor brownfloor grayfloor grayfloor brownfloor"):split" ",
+		walls = ("redwall redwall brownwall graywall graywall brownfloor"):split " ",
+		hordes = {
+			"prelate prelate",
+			"horror",
+			"siarnaqean",
+			"priest"
+		},
+		exit = "macguffin"
+	},
+
+
 }
 
 -- tile content flags:
@@ -188,7 +236,7 @@ local raw_spawns = {
 		must_stand = true, ai = "ape",
 		health = 3
 	},
-	pango = {
+	pangolin = {
 		name = "promethean pangolin", tile = {
 			glyph = "m", fg = 12,
 			transparency = 1.0, blocking = 1
@@ -197,6 +245,15 @@ local raw_spawns = {
 		attack_pattern = pattern.bump,
 		must_stand = true, ai = "ape",
 		health = 5
+	},
+	spark = {
+		name = "ionian spark", tile = {
+			glyph = "i", fg = 11,
+			transparency = 1.0, blocking = 1
+		},
+		attack_pattern = pattern.bump,
+		must_stand = true, ai = "spark",
+		health = 9
 	},
 
 
@@ -219,6 +276,16 @@ local raw_spawns = {
 		attack_pattern = pattern.bump,
 		must_stand = true, ai = "eel",
 		health = 3
+	},
+	
+	siarnaqean = {
+		name = "siarnaqean pohlsepid", tile = {
+			glyph = "o", fg = 0,
+			transparency = 1.0, blocking = 2
+		},
+		attack_pattern = pattern.bump,
+		must_stand = true, ai = "eel",	
+		health = 6
 	},
 
 	spider = {
@@ -277,17 +344,6 @@ local raw_spawns = {
 		attack_pattern = pattern.bump,
 		must_stand = true, ai = "eel",
 		health = 16
-	},
-
-	
-	siarnaqean = {
-		name = "siarnaqean pohlsepid", tile = {
-			glyph = "o", fg = 0,
-			transparency = 1.0, blocking = 2
-		},
-		attack_pattern = pattern.bump,
-		must_stand = true, ai = "eel",	
-		health = 6
 	},
 	
 

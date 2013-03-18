@@ -578,7 +578,16 @@ local function new_level(width, height, dlvl_up)
 	end)
 
 	rocks:set(self.entry.x, self.entry.y, "stairs-up")
-	rocks:set(self.exit.x, self.exit.y, "stairs-down")
+
+	if prototype.exit == nil then
+		rocks:set(self.exit.x, self.exit.y, "stairs-down")
+	else
+		rocks:erase(self.exit.x, self.exit.y)
+
+		local item = Cog.item(prototype.exit)
+		self:addcog(item)
+		item:moveto(self.exit.x, self.exit.y)
+	end
 
 	-- we have already carved the map from the bigmask, so now we can use it
 	-- to track the places we have already decorated! (we'll set it back to 0
@@ -609,9 +618,10 @@ local function new_level(width, height, dlvl_up)
 			end
 		end
 	end
-	splash_some("ice", 30)
-	splash_some("ice", 30)
-	splash_some("ice", 30)
+
+	-- splash_some("ice", 30) -- ice is still buggy
+	-- splash_some("ice", 30)
+	-- splash_some("ice", 30)
 	splash_some("water", 90)
 	splash_some("water", 90)
 	splash_some("water", 90)

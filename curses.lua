@@ -34,7 +34,7 @@ local function getcurses()
 	end
 
 	os.atexit(clean)
-	-- ffi.C.atexit(ncurses.endwin) -- just in case
+	-- ffi.C.atexit(ncurses.endwin) -- it'll be nice to add this, just in case
 
 	return ncurses, attr
 end

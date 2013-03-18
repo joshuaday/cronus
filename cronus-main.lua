@@ -4,8 +4,10 @@ local Messaging = require "messaging"
 local Menu = require "menu"
 local Cog = require "cog"
 
+local ERRORED_OUT = false
+
 _G.DEBUG_MODE = true
-ERRORED_OUT = false
+_G.VICTORY = false
 
 -- local pds = require "pds/pds"
 
@@ -62,20 +64,7 @@ local remap = {
 
 term.settitle "Cogs of Cronus"
 
-local function tell_story()
-	story = {
-		{
-			"You are a prospector on Titan, near Xanadu."
-		}, {
-			"You are trapped in a strange cave, warm",
-			"and with Earth-like air."
-		}, {
-			"There's a faint radio signal down below.",
-			"If you can find the transmitter, you can",
-			"probably call for help."
-		}
-	}
-
+local function tell_story(story, and_then)
 	local chunk_idx = 1
 
 	local function continue()
@@ -88,6 +77,8 @@ local function tell_story()
 				end
 				Messaging:announce (msg)
 			end
+		else
+			if and_then then and_then() end
 		end
 		chunk_idx = chunk_idx + 1
 	end
@@ -95,7 +86,19 @@ local function tell_story()
 	continue()
 end
 
-tell_story()
+tell_story {
+	{
+		"You are a prospector on Titan, near Xanadu."
+	}, {
+		"You are trapped in a strange cave, warm",
+		"and with Earth-like air."
+	}, {
+		"There's a faint radio signal down below.",
+		"If you can find the transmitter, you can",
+		"probably call for help."
+	}
+}
+
 
 local dlvl = Dungeon.new_level(80, 24)
 local you = dlvl:spawn "rogue"
@@ -109,6 +112,22 @@ you:pickup(Cog.item "radio")
 
 you.is_player = true
 
+local function you_win()
+	local function finally()
+		io.stdout:write("You have defeated Cogs of Cronus (7DRL Edition)!\n")
+		io.stdout:write("Stay tuned for the post 7DRL releases.\n\n")
+		io.stdout:write("(It should have been a 14DRL, really.)\n")
+	end
+	os.exit(0, finally) 
+end
+local function you_lose()
+	local function finally()
+		io.stdout:write("You have attempted Cogs of Cronus (7DRL Edition)!\n")
+		io.stdout:write("Stay tuned for the post 7DRL releases.\n\n")
+		io.stdout:write("(It should have been a 14DRL, really.)\n")
+	end
+	os.exit(0, finally) 
+end
 
 local function simulate(term)
 	local command = nil
@@ -248,6 +267,29 @@ local function simulate(term)
 
 		if animating then
 			term.napms(0) -- give the os a slice in case we haven't yet
+		end
+
+		if VICTORY == true then
+			VICTORY = false -- so we don't keep spamming the player
+			tell_story ({
+				{
+					"It's one of the transmitters from the Huygens",
+					"probe, used as a bizarre idol!"
+				}, {
+					"Now you can call for help!"
+				}, {
+					"Then again, it's doubtful whether anyone will",
+					"even hear..."
+				},
+			}, you_win)
+		end
+
+		if you.dlvl == nil then
+			you.dlvl = false -- just keep it from repeating this text (hack)
+			tell_story ({
+				{"You were never supposed to die here."},
+				{"It was only just a job."}
+			}, you_lose)
 		end
 
 		local time_now = term.getms()

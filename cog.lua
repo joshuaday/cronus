@@ -226,7 +226,7 @@ function cog:attack(victim)
 			victim.dlvl:removecog(victim)
 
 			if self.is_player then
-				Messaging:announce {"You kill the " .. victim.name .. ".", ttl = 500}
+				Messaging:announce {"You kill the " .. victim.name .. ".", ttl = 1500}
 			end
 		else
 			victim:say(victim.health .. "/" .. victim.info.health)
@@ -294,7 +294,6 @@ function cog:automove(dx, dy)
 	end
 end
 
-
 function cog:pickup(item)
 	-- find a slot to put it in
 	local i = 0
@@ -308,6 +307,11 @@ function cog:pickup(item)
 	-- remove it from the level (if it's on it)
 	if item.dlvl then
 		item.dlvl:removecog(item)
+	end
+
+	-- check for the victory condition
+	if item.info.slot == "victory" then
+		VICTORY = true
 	end
 
 	-- put it in the bag
