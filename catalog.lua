@@ -34,7 +34,7 @@ local raw_tiles = {
 	void = {
 		glyph = "?!", fg = 0, bg = 5, -- black on magenta, ew
 		-- glyph = "#", fg = 1, bg = 7,
-		transparency = 0.0, blocking = 1,
+		transparency = 0.0, blocking = 1, floor = "none",
 		complaint = "The unforgiving cold of Titan waits beyond."
 	},
 
@@ -51,25 +51,29 @@ local raw_tiles = {
 
 	water = {
 		glyph = "~", fg = 12, bg = 4, blocking = 0,
-		transparency = 1.0
+		transparency = 1.0, floor = "water"
+	},
+	chasm = {
+		glyph = "7", fg = 4, bg = 0, blocking = 0,
+		transparency = 1.0, floor = "none"
 	},
 	ice = {
 		glyph = "-", fg = 12, bg = 6, blocking = 0,
-		transparency = 1.0, slick = true
+		transparency = 1.0, floor = "slick"
 	},
 
 	redfloor = {
 		glyph = ".", fg = 0, bg = 1,
-		transparency = 1.0,
+		transparency = 1.0, floor = "solid",
 		complaint = "The ground crunches."
 	},
 	brownfloor = {
 		glyph = ".", fg = 3, bg = 3,
-		transparency = 1.0
+		transparency = 1.0, floor = "solid"
 	},
 	grayfloor = {
 		glyph = ".", fg = 8, bg = 7,
-		transparency = 1.0
+		transparency = 1.0, floor = "solid"
 	},
 
 	redwall = {
@@ -107,9 +111,19 @@ local raw_tiles = {
 		transparency = 0.0
 	},
 
+	door = {
+		glyph = "+", fg = 1, bg = 0,
+		transparency = 0.0
+	},
+
+
 	handle = {
 		glyph = "!", fg = 1, bg = 7, blocking = 2, interact = "push",
 		transparency = 0.0
+	},
+	boulder = {
+		glyph = "0", fg = 15, blocking = 1, interact = "push",
+		transparency = 1.0
 	},
 
 	-- item tiles
@@ -312,6 +326,9 @@ local raw_items = {
 	},
 	timer = {
 		name = "timed detonator", tile = "detonator", slot = "quaff"
+	},
+	camera = {
+		name = "view cam", tile = "detonator", slot = "quaff"
 	},
 	petn = {
 		name = "stick of PETN", tile = "tank", slot = "quaff"

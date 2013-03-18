@@ -217,6 +217,9 @@ function cog:attack(victim)
 		return -- don't attack friends
 	end
 
+	-- roll attack and defense
+	
+
 	if victim.health then
 		victim.health = victim.health - 1
 		if victim.health <= 0 then
@@ -226,10 +229,7 @@ function cog:attack(victim)
 				Messaging:announce {"You kill the " .. victim.name .. ".", ttl = 500}
 			end
 		else
-			victim:say(victim.health .. "hp")
-			-- if self.is_player then
-				-- Messaging:announce {"You hit the " .. victim.name .. ".", ttl = 500}
-			-- end
+			victim:say(victim.health .. "/" .. victim.info.health)
 		end
 	end
 end
@@ -248,11 +248,22 @@ function cog:manipulate(item_idx, command)
 	end
 end
 
+function cog:get_floor()
+	return self.dlvl:topmost(self.x1, self.y1, function(cog, tile)
+		return tile.floor
+	end)
+end
+
 function cog:automove(dx, dy)
 	if self.has_initiative then
 		if dx == 0 and dy == 0 then
+			if self:get_floor() == "slick" and (self.lastdx ~= 0 or self.lastdy ~= 0) then
+				return self:automove(self.lastdx or 0, self.lastdy or 0)
+			end
+
 			-- just yield initiative
 			self.has_initiative = false
+			
 			if self.is_player then
 				Messaging:announce {"You wait.", ttl = 500}
 			end
@@ -337,6 +348,21 @@ function cog:push(dx, dy)
 	
 	local x, y = self.x1, self.y1
 	
+	-- todo : adapt floor_type to work for bigger cogs !
+	local floor_type = self:get_floor()
+	
+	if floor_type == "slick" then
+		local dx1, dy1 = self.lastdx or 0, self.lastdy or 0
+		if dx == 0 and dy == 0 then
+			dx, dy = dx1, dy1
+		else
+			-- you can turn but you can't stop
+			
+		end
+	end
+	
+	self.lastdx, self.lastdy = 0, 0
+	
 	local distance = math.abs(dx) + math.abs(dy)
 	if distance > 1 then
 		-- decompose the motion into single steps and try them in arbitrary order until something sticks
@@ -377,7 +403,7 @@ function cog:push(dx, dy)
 		
 		if interaction then
 			if interaction == "push" then
-				blocked = not pushing:push(dx, dy)
+				blocked = not interacting:push(dx, dy)
 			end
 			if interaction == "down" then
 				-- 
@@ -390,6 +416,7 @@ function cog:push(dx, dy)
 			return false
 		end
 
+		self.lastdx, self.lastdy = dx, dy -- mark motion for, e.g., slipping
 		return true
 	end
 end

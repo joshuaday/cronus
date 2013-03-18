@@ -134,8 +134,8 @@ function level:attach_floormap(cog)
 			-- check the cells here and, for now, assume that all non-void cells
 			-- in the creature have the same obstruction settings (true for the
 			-- moment; when it ceases to be true, we'll modify)
-
 			
+		
 		end
 	end
 end

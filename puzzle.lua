@@ -7,11 +7,52 @@ local random = require "random"
 
 
 
+local function place_piece(dlvl, cog)
+	-- find a place where two the cog connects on two sides
+	-- but not on the other two (todo - make a map of possible
+	-- locations and use that to decide)
+	
+	dlvl:refresh()
+	dlvl:addcog(cog)
+
+	local x, y
+	local tries = 50
+	repeat
+		x, y = math.random(0, dlvl.width), math.random(0, dlvl.height)
+
+		if cog:can_stand_at(x, y) then
+			local vertical =
+				(dlvl.blocking:get(x - 1, y) == 2 and dlvl.blocking:get(x + cog.map.width, y) == 2) -- todo : encapsulate
+				and (dlvl.blocking:get(x, y - 1) == 0 and dlvl.blocking:get(x, y + cog.map.height) == 0)
+			local horizontal = 
+				(dlvl.blocking:get(x, y - 1) == 2 and dlvl.blocking:get(x, y + cog.map.height) == 2)
+				and (dlvl.blocking:get(x - 1, y) == 0 and dlvl.blocking:get(x + cog.map.width, y) == 0) -- todo : encapsulate
+
+			if (vertical or horizontal) then
+				cog:moveto(x, y)
+				return
+			end
+		end
+		tries = tries - 1
+	until tries == 0
+
+	dlvl:removecog(cog)
+end
+
 local function puzzlify(dlvl, floormask)
 	-- we'll copy the mask, and as we proceed we'll be
 	-- SPLITTING IT BACK UP INTO ZONES.  the zones will
 	-- have a puzzley tree structure or something.  it's cool.
 
+
+	dlvl:refresh()
+
+	for i = 1, 15 do
+		local door = Cog.new(1, 1)
+		door:set(1, 1, "boulder")
+		place_piece(dlvl, door)
+	end
+	
 	local bigmask = floormask:clone()
 	-- get the passable gradient from the entry
 	
@@ -27,6 +68,9 @@ local function puzzlify(dlvl, floormask)
 	local path_to_entry, path_to_exit = paths:clone(), paths:clone()
 
 	local zones = bigmask:zones(zonemap)
+
+
+
 
 
 	-- get entry and exit gradients
