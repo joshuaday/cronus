@@ -221,7 +221,7 @@ function level:update_fov()
 
 			Fov.scan(self.transparency, eye.fov, eye_x, eye_y, eye.fov_mask)
 
-			if eye.is_player then -- todo: restore seeing eye coolness
+			if eye.team == "player" then
 				self.fov:stamp(eye.fov, math.max)
 			end
 		end
@@ -442,7 +442,7 @@ local function new_level(width, height, dlvl_up)
 	end
 
 	--local ss_seq = {0, 0, 0, 30, 3, 3, 3, 0, 0, 2}
-	local ss_seq = {0, 5, 20, 0, 0, 9}
+	local ss_seq = {0, 6, 20, 0, 0, 3}
 	local ss, numsofar = #ss_seq, 0
 	
 	while true do

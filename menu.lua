@@ -37,11 +37,15 @@ local inventory_prompts = {
 	e = "Equip what?",
 	d = "Drop what?",
 	a = "Apply what?",
-	r = "Remove what?"
+	r = "Remove what?",
+	T = "Attach to what?"
 }
 
 function Menu:inventory(term, bag, action)
 	local y1, x1 = 1, 20
+	local function callback (action)
+		return self:inventory(term, bag, action)
+	end
 
 	for rep = 1, 2 do
 		if rep == 1 then
@@ -75,6 +79,9 @@ function Menu:inventory(term, bag, action)
 					.put(string.byte (item.tile.glyph)).put(string.byte ' ')
 					.fg(15)
 					.print("a ").print(item.name)
+				if item.equipped then
+					term.print(" (equipped)")
+				end
 				y = y + 1
 				nitems = nitems + 1
 			end
@@ -102,7 +109,7 @@ function Menu:inventory(term, bag, action)
 			local idx = 1 + string.byte(key) - string.byte('a')
 			
 			if idx >= 1 and idx <= bag.slots and bag[idx] ~= nil then
-				return idx, action
+				return idx, action, bag[idx], callback
 			end
 		until key == " "
 	else

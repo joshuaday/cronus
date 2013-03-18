@@ -1,0 +1,64 @@
+Joshua Day's "Cogs of Cronus"
+Version 0.7DRL
+
+An entry in the 2013 Seven Day Roguelike (7DRL) Challenge
+
+Find details about the 2011 7DRL Challenge at
+  http://roguebasin.roguelikedevelopment.org/index.php?title=7DRL_Contest_2013
+
+Track new version of Cogs of Cronus at
+  http://www.jdaydev.com/cronus
+
+THIS RELEASE
+------------
+
+This is the very first release of Cogs of Cronus, and if it weren't for the
+challenge, this release would never have seen the light of day.  It's woefully
+incomplete relative to the plan, and even relative to the unused code lurking
+deep within.  It can only run under POSIX systems and it can do relatively
+few of the things it is designed to do.  It is, nonetheless, a complete if
+deeply flawed game.
+
+You'll need luajit.  Later releases of Cogs of Cronus will include binaries
+of luajit -- for the moment, you're on your own.  Sorry (really, honestly.)
+
+
+THE GAME
+--------
+
+There is very little to surprise a player of traditional roguelikes; a player
+of Brogue will find the experience particularly simple.  Find items on the
+map (moving with hjklyubn if you can, or the numpad if you must, taking care
+that your terminal emulator supplies keys properly), and defeat enemies along
+the way.
+
+You get precisely nothing by defeating enemies, and you are well advised to
+ignore them.  Nonetheless, explosives and melee weapons help immensely, and
+using them (e to equip a melee weapon, a to apply consumables) will make the
+map much more accessible.
+
+This version largely excludes the procedurally generated puzzles that are the
+crux of the design -- check in later for more.  Please do email
+josh.day@gmail.com in order to follow the progress of the game beyond this
+rather primitive stage.
+
+Apply a TANK OF AIR to heal yourself.  Apply a detonator (both kinds behave
+the same for now, sorry) to an explosive (both kinds behave the same), drop
+the explosive, and apply the detonator, to kill all enemies immediately
+adjacent to the blast.
+
+The item that ends the game (depicted by an asterisk [*]) appears on dlvl 6
+and you will find no stairs down there.
+
+
+KNOWN BUGS
+----------
+Aside from bugs that have caused me to exclude major features (such as puzzle
+generation), and "bugs" where features have simply not been implemented, the
+only known bug is this:
+
+* monsters are not restricted to their proper media; eels swim on land, and
+  monkeys walk on water.  This limits the tactical interest of the game
+  considerably.
+
+

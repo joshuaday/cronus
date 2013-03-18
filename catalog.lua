@@ -211,6 +211,7 @@ local pattern = {
 		checkers = true
 	},
 	backthrow = {
+		bump = true,
 		backthrow = true
 	}
 }
@@ -222,6 +223,8 @@ local raw_spawns = {
 			transparency = 1.0, blocking = 1,
 		},
 
+		damage = 1, accuracy = 20, attack_pattern = pattern.bump,
+
 		must_stand = true, ai = "you",
 		health = 12, bagslots = 17
 	},
@@ -232,6 +235,7 @@ local raw_spawns = {
 			transparency = 1.0, blocking = 1
 		},
 		noises = [[eeeee,oo oo oo,SCRAW]],
+		damage = 1, accuracy = 40,
 		attack_pattern = pattern.bump,
 		must_stand = true, ai = "ape",
 		health = 3
@@ -241,6 +245,7 @@ local raw_spawns = {
 			glyph = "m", fg = 12,
 			transparency = 1.0, blocking = 1
 		},
+		damage = 2, accuracy = 40,
 		noises = [[roo hrr]],
 		attack_pattern = pattern.bump,
 		must_stand = true, ai = "ape",
@@ -251,7 +256,8 @@ local raw_spawns = {
 			glyph = "i", fg = 11,
 			transparency = 1.0, blocking = 1
 		},
-		attack_pattern = pattern.bump,
+		damage = 1, accuracy = 60,
+		attack_pattern = pattern.scythe,
 		must_stand = true, ai = "spark",
 		health = 9
 	},
@@ -262,6 +268,7 @@ local raw_spawns = {
 			glyph = "e", fg = 15,
 			transparency = 1.0, blocking = 1
 		},
+		damage = 2, accuracy = 80,
 		attack_pattern = pattern.bump,
 		must_stand = true, ai = "eel",
 		health = 3
@@ -273,6 +280,7 @@ local raw_spawns = {
 			transparency = 1.0, blocking = 1
 		},
 		noises = [[blub]],
+		damage = 1, accuracy = 50, -- grab
 		attack_pattern = pattern.bump,
 		must_stand = true, ai = "eel",
 		health = 3
@@ -283,6 +291,7 @@ local raw_spawns = {
 			glyph = "o", fg = 0,
 			transparency = 1.0, blocking = 2
 		},
+		damage = 6, accuracy = 30,
 		attack_pattern = pattern.bump,
 		must_stand = true, ai = "eel",	
 		health = 6
@@ -293,6 +302,7 @@ local raw_spawns = {
 			glyph = "S", fg = 0,
 			transparency = 1.0, blocking = 2
 		},
+		damage = 1, accuracy = 90,
 		attack_pattern = pattern.bump,	
 		must_stand = true, ai = "troll",
 		health = 9
@@ -306,6 +316,7 @@ local raw_spawns = {
 
 		noises = [[groan]],
 
+		damage = 3, accuracy = 90,
 		attack_pattern = pattern.bump,
 		must_stand = true, ai = "troll",
 		health = 4
@@ -319,6 +330,7 @@ local raw_spawns = {
 
 		noises = [[groan]],
 
+		damage = 4, accuracy = 70,
 		attack_pattern = pattern.bump,
 		must_stand = true, ai = "troll",
 		health = 4
@@ -330,6 +342,7 @@ local raw_spawns = {
 			transparency = 1.0, blocking = 2
 		},
 		
+		damage = 6, accuracy = 70,
 		attack_pattern = pattern.bump,
 		must_stand = true, ai = "eel",
 		health = 16
@@ -341,7 +354,8 @@ local raw_spawns = {
 			transparency = 1.0, blocking = 2
 		},
 		
-		attack_pattern = pattern.bump,
+		damage = 3, accuracy = 100,
+		attack_pattern = pattern.rapier,
 		must_stand = true, ai = "eel",
 		health = 16
 	},
@@ -353,7 +367,8 @@ local raw_spawns = {
 			transparency = 0.0, blocking = 2
 		},
 
-		attack_pattern = pattern.bump,
+		damage = 4, accuracy = 100,
+		attack_pattern = pattern.rapier,
 		must_stand = true, ai = "troll",
 		health = 16
 	},
@@ -363,7 +378,9 @@ local raw_spawns = {
 			glyph = "p", fg = 15,
 			transparency = 1.0, blocking = 1
 		},
-		attack_pattern = pattern.bump,
+
+		damage = 4, accuracy = 100,
+		attack_pattern = pattern.rapier,
 		must_stand = true, ai = "troll",
 		health = 16
 	},
@@ -375,56 +392,60 @@ local raw_items = {
 		name = "Huygens S-band Radio", tile = "trinket", slot = "victory", SCORE = 0
 	},
 	air = {
-		name = "tank of air", tile = "tank", slot = "quaff"
+		name = "tank of air", tile = "tank", does = "heal", SCORE = 2 -- more likely than other stuff
 	},
 	radio = {
-		name = "remote detonator", tile = "detonator", slot = "quaff"
+		name = "remote detonator", tile = "detonator", does = "detonates"
 	},
 	timer = {
-		name = "timed detonator", tile = "detonator", slot = "quaff"
+		name = "timed detonator", tile = "detonator", does = "detonates"
 	},
 	camera = {
-		name = "view cam", tile = "detonator", slot = "quaff"
+		name = "view cam", tile = "detonator", does = "fov"
 	},
 	petn = {
-		name = "stick of PETN", tile = "tank", slot = "quaff"
+		name = "stick of PETN", tile = "tank", needs = "detonator", does = "explode", complaint = "blow yourself to pieces"
 	},
 	c4 = {
-		name = "stick of C-4", tile = "tank", slot = "quaff"
+		name = "stick of C-4", tile = "tank", needs = "detonator", does = "explode", complaint = "blow yourself to pieces"
 	},
 	incendiary = {
-		name = "incendiary charge", tile = "tank", slot = "quaff"
+		name = "incendiary charge", tile = "tank", needs = "detonator", does = "explode", complaint = "burn yourself to a crisp"
 	},
 
 	chisel = {
-		name = "chisel", tile = "weapon", slot = "wield",
-		attack_pattern = pattern.scythe, SCORE = .2
+		name = "chisel", tile = "weapon", slot = "weapon",
+		damage = 1, accuracy = 50,
+		attack_pattern = pattern.bump, SCORE = .2
 	},
 
 	scythe = {
-		name = "scythe", tile = "weapon", slot = "wield",
+		name = "scythe", tile = "weapon", slot = "weapon",
+		damage = 2, accuracy = 60,
 		attack_pattern = pattern.scythe, SCORE = .2
 	},
 
 	lance = {
-		name = "lance", tile = "weapon", slot = "wield",
-		attack_pattern = pattern.lance, SCORE = .2
+		name = "lance", tile = "weapon", slot = "weapon",
+		attack_pattern = pattern.lance, SCORE = .0
 	},
 
 	rapier = {
-		name = "rapier", tile = "weapon", slot = "wield",
+		name = "rapier", tile = "weapon", slot = "weapon",
+		damage = 3, accuracy = 100,
 		attack_pattern = pattern.lunge, SCORE = .2
 	},
 	
 	holowhip = {
-		name = "holowhip", tile = "weapon", slot = "wield",
+		name = "holowhip", tile = "weapon", slot = "weapon",
 		attack_pattern = pattern.checkers,
 		description = [[
-		]], SCORE = .2
+		]], SCORE = .0
 	},
 	
 	cleaver = {
-		name = "cleaver", tile = "weapon", slot = "wield",
+		name = "cleaver", tile = "weapon", slot = "weapon",
+		damage = 2, accuracy = 100,
 		attack_pattern = pattern.backthrow, SCORE = .2
 	}
 }
@@ -470,7 +491,9 @@ local function index_spawns(raw_spawns)
 
 		spawn.tile_idx = tile.idx
 		spawn.tile = tiles[tile.idx]
+		spawn.attack_pattern = spawn.attack_pattern or pattern.bump
 
+	
 		spawn.SCORE = spawn.SCORE or 1
 		SCORE = SCORE + spawn.SCORE
 

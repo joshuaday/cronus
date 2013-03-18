@@ -1,0 +1,11 @@
+#! /bin/bash
+
+
+rm cronus-0.7drl.tar.gz
+
+tar --transform 's,^,cronus-0.7drl/,' -czf cronus-0.7drl.tar.gz \
+	*.lua \
+	cronus \
+	generate-header.sh \
+	README 
+

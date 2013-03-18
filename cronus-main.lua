@@ -6,7 +6,7 @@ local Cog = require "cog"
 
 local ERRORED_OUT = false
 
-_G.DEBUG_MODE = true
+_G.DEBUG_MODE = false
 _G.VICTORY = false
 
 -- local pds = require "pds/pds"
@@ -105,10 +105,11 @@ local you = dlvl:spawn "rogue"
 you:moveto(dlvl.entry.x, dlvl.entry.y)
 you.team = "player"
 
-you:pickup(Cog.item "chisel")
+you:pickup(Cog.item "chisel", true)
 you:pickup(Cog.item "tank of air")
 you:pickup(Cog.item "petn")
 you:pickup(Cog.item "radio")
+you:pickup(Cog.item "camera")
 
 you.is_player = true
 
@@ -221,9 +222,9 @@ local function simulate(term)
 			if key == "i" or key == "e" or key =="r" or key =="d" or key == "a" and you.bag then
 				term.erase()
 				dlvl:draw(term) -- clear the screen of messages (for now)
-				local item, command = Menu:inventory(term, you.bag, key)
+				local item, command, _, cb = Menu:inventory(term, you.bag, key)
 				if command then
-					you:manipulate(item, command)
+					you:manipulate(item, command, cb) -- cb is a hack
 				end
 			end
 			if key == "t" then
@@ -232,7 +233,7 @@ local function simulate(term)
 			if key == "?" then
 				you:say "Help!"
 			end
-			if key == ">" then
+			if key == ">" and (DEBUG_MODE or you.x1 == dlvl.exit.x and you.y1 == dlvl.exit.y) then
 				-- temporary
 				dlvl = Dungeon.new_level(80, 24, dlvl)
 				dlvl:addcog(you)
@@ -288,7 +289,8 @@ local function simulate(term)
 			you.dlvl = false -- just keep it from repeating this text (hack)
 			tell_story ({
 				{"You were never supposed to die here."},
-				{"It was only just a job."}
+				{"It was only just a job."},
+				{"What a terrible way to go."}
 			}, you_lose)
 		end
 

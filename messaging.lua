@@ -3,6 +3,10 @@ local Messaging = { }
 local log = { }
 
 function Messaging:announce(msg)
+	if msg == nil or msg[1] == nil then
+		return
+	end
+
 	log[1 + #log] = msg
 
 	msg.ttl = type(msg.ttl) == "number" and msg.ttl or 2000
