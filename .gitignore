@@ -1,4 +1,5 @@
 *.swp
 *.tar
+pdc/
 shared-header.h
 

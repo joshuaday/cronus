@@ -44,14 +44,13 @@ function layer:set(x, y, v)
 	return self
 end
 
-function layer:moveto(x, y)
-	x1, y1 = x, y
+function layer:moveto(x1, y1)
 	self.x1, self.y1, self.x2, self.y2 = x1, y1, x1 + self.width - 1, y1 + self.height - 1
 	return self
 end
 
 function layer:recenter(x, y)
-	x1, y1 = x - math.floor(self.width / 2), y - math.floor(self.height / 2)
+	local x1, y1 = x - math.floor(self.width / 2), y - math.floor(self.height / 2)
 	self.x1, self.y1, self.x2, self.y2 = x1, y1, x1 + self.width - 1, y1 + self.height - 1
 	return self
 end

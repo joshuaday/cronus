@@ -41,9 +41,9 @@ end
 
 function Messaging:draw(term)
 	local ttl = 10000
-	local w, h = term.getsize()
+	local w, h = term:getsize()
 
-	term.mask(true)
+	term:mask(true)
 	for i = 1, #log do
 		local msg = log[i]
 		local x, y = msg.x, msg.y
@@ -55,17 +55,17 @@ function Messaging:draw(term)
 		if y < 0 then y = 1 end
 		if x < 0 then x = 0 end
 
-		term.fg(msg.fg).bg(msg.bg)
+		term:fg(msg.fg):bg(msg.bg)
 
 		repeat
-			local _, ok = term.at(x, y).print(msg[1])
+			local _, ok = term:at(x, y):print(msg[1])
 			y = y + 1
 		until ok or y > h
 
 		msg.drawn = true -- mark it so we know to start counting time
 		ttl = math.min(ttl, msg.ttl)
 	end
-	term.mask(false)
+	term:mask(false)
 
 	if #log > 0 then
 		return ttl

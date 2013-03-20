@@ -98,7 +98,7 @@ local raw_tiles = {
 	},
 
 	water = {
-		glyph = "~", fg = 12, bg = 4, blocking = 0,
+		glyph = "~", fg = 4, bg = 0, blocking = 0,
 		transparency = 1.0, floor = "water"
 	},
 	chasm = {
@@ -116,7 +116,7 @@ local raw_tiles = {
 		complaint = "The ground crunches."
 	},
 	brownfloor = {
-		glyph = ".", fg = 3, bg = 3,
+		glyph = ".", fg = 1, bg = 3,
 		transparency = 1.0, floor = "solid"
 	},
 	grayfloor = {

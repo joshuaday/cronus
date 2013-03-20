@@ -251,10 +251,10 @@ function level:draw(term)
 
 			if glyph >= 32 then
 				term
-					.at(x - 1, y - 1)
-					.fg(fg)
-					.bg(bg)
-					.put(glyph)
+					:at(x - 1, y - 1)
+					:fg(fg)
+					:bg(bg)
+					:put(glyph)
 			end
 		end
 	end
