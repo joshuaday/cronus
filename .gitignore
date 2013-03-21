@@ -1,5 +1,8 @@
 *.swp
 *.tar
+*.dll
+*.so
 pdc/
+luajit/
 shared-header.h
 

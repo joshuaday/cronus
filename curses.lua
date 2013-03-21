@@ -6,7 +6,15 @@ local hasbold, hasblink = true, true
 local black = color(0, 0, 0, 1)
 
 local function getcurses()
-	local ncurses = ffi.load("ncurses")
+	local ncurses, mouse_support
+	
+	if ffi.os == "Windows" then
+		ncurses = ffi.load "pdcurses"
+		mouse_support = false
+	else
+		ncurses = ffi.load "ncurses"
+		mouse_support = true
+	end
 
 	require "cdefheader"
 
@@ -24,7 +32,8 @@ local function getcurses()
 			magenta = 5,
 			cyan = 6,
 			gray = 7
-		}
+		},
+		mouse_support = mouse_support
 	}
 	
 	local function clean()
@@ -165,7 +174,7 @@ local function adapter()
 
 		local function startcurses()
 			local stdscr = ncurses.initscr()
-			-ncurses.raw()
+			-- ncurses.raw()
 			ncurses.noecho()
 			ncurses.cbreak()
 			ncurses.curs_set(0)
@@ -185,7 +194,7 @@ local function adapter()
 		end
 
 		local function startmouse()
-			if ncurses.has_mouse and ncurses.has_mouse() then
+			if attr.mouse_support and ncurses.has_mouse and ncurses.has_mouse() then
 				-- mousemask( , nil);
 
 				-- getmouse( );
@@ -250,10 +259,34 @@ local function adapter()
 		ffi.C.ftime(time)
 		return 1000 * time.time + time.millitm
 	end
+	
+	if ffi.os == "Windows" then
+		ffi.cdef [[ unsigned int timeGetTime();]] -- until a proper windows header is generated 
+		ffi.cdef [[ int     wgetch(WINDOW *); ]] -- until a proper windows header is generated
+		local mm = ffi.load "winmm.dll"
+		getms = function()
+			return mm.timeGetTime()
+		end
+
+		getch = function (waitms)
+			timeout(waitms)
+
+			do
+				local ch = ncurses.wgetch(ncurses.stdscr)
+				if ch > 31 and ch < 256 then
+					return string.char(ch), ch
+				elseif keys[ch] then
+					return keys[ch], ch
+				elseif ch > 1 then
+					return string.char(ch), ch
+				end
+			end
+		end
+	end
 
 	local current_attr = -1
 	local function color4(fg, bg)
-		local color = ncurses.COLOR_PAIR(1 + bit.band(7, fg) + 8 * bit.band(7, bg))
+		local color = ncurses.COLOR_PAIR(1 + bit.band(7, fg) + 8 * bit.band(7, bg)) -- won't work under pdcurses
 
 		if hasbold and fg > 7 then
 			color = bit.bor(color, attr.bold)
@@ -266,6 +299,28 @@ local function adapter()
 			current_attr = color
 		end
 	end
+
+	if ffi.os == "Windows" then
+		color4 = function(fg, bg)
+			-- # define PDC_COLOR_SHIFT 24
+			-- #define COLOR_PAIR(n)      (((chtype)(n) << PDC_COLOR_SHIFT) & A_COLOR)
+
+			local color = bit.lshift(1 + bit.band(7, fg) + 8 * bit.band(7, bg), 24)
+
+			if hasbold and fg > 7 then
+				color = bit.bor(color, attr.bold)
+			end
+			if hasblink and bg > 7 then
+				color = bit.bor(color, attr.blink)
+			end
+			if color ~= current_attr then
+				ncurses.attrset(color)
+				current_attr = color
+			end
+		end
+	end
+
+
 	local function color32(fg, bg)
 		fg, bg = coerce.pair(fg, bg)
 		color4(fg, bg)
@@ -291,6 +346,16 @@ local function adapter()
 		getms = getms,
 		settitle = settitle
 	}
+
+	local function debug_wrap()
+		for k, v in pairs(adapter) do
+			adapter[k] = function(...)
+				print (k)
+				return v(...)
+			end
+		end
+	end
+	--debug_wrap()
 	
 	return adapter
 end

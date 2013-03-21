@@ -358,6 +358,7 @@ local function simulate(term)
 		term:clip(0, 0, 80, 24)
 
 		xpcall(protected, protection)
+		--protected()
 	until hasquit
 end
 
