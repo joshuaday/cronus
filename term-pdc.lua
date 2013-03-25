@@ -7,21 +7,21 @@ local hasbold, hasblink = true, true
 -- rather than focus on the similarities between pdcurses and ncurses,
 -- it seems simpler and cleaner to keep them separate
 
-ffi.cdef [[ int     wgetch(WINDOW *); ]] -- until a proper pdc header is generated
-
-kocal function getcurses()
+local function getcurses()
 	local pdcurses, mouse_support
 	
 	pdcurses = ffi.load "pdcurses"
 	mouse_support = false
 
 	require "cdefheader"
+	ffi.cdef [[ int     wgetch(WINDOW *); ]] -- until a proper pdc header is generated
+
 
 	-- a table of attributes and colors
 
 	local attr = {
-		blink = tostring("400000", 16),
-		bold = tostring("800000", 16),
+		blink = tonumber("400000", 16),
+		bold = tonumber("800000", 16),
 		color = { -- these get remapped dynamically to the proper values
 			black = 0,
 			red = 1,
@@ -183,15 +183,15 @@ local raw_keys = { -- hex constants
 	CTL_HOME = "1bf",
 	CTL_END = "1c0",
 
-	KEY_A1 = "1c1",
-	KEY_A2 = "1c2",
-	KEY_A3 = "1c3",
-	KEY_B1 = "1c4",
-	KEY_B2 = "1c5",
-	KEY_B3 = "1c6",
-	KEY_C1 = "1c7",
-	KEY_C2 = "1c8",
-	KEY_C3 = "1c9",
+	A1 = "1c1",
+	A2 = "1c2",
+	A3 = "1c3",
+	B1 = "1c4",
+	B2 = "1c5",
+	B3 = "1c6",
+	C1 = "1c7",
+	C2 = "1c8",
+	C3 = "1c9",
 
 	PADSLASH = "1ca",
 	PADENTER = "1cb",
@@ -279,16 +279,16 @@ local raw_keys = { -- hex constants
 	SHF_IC = "219",
 	SHF_DC = "21a",
 
-	KEY_MOUSE = "21b",
-	KEY_SHIFT_L = "21c",
-	KEY_SHIFT_R = "21d",
-	KEY_CONTROL_L= "21e",
-	KEY_CONTROL_R= "21f",
-	KEY_ALT_L = "220",
-	KEY_ALT_R = "221",
-	KEY_RESIZE = "222",
-	KEY_SUP = "223",
-	KEY_SDOWN = "224"
+	MOUSE = "21b",
+	SHIFT_L = "21c",
+	SHIFT_R = "21d",
+	CONTROL_L= "21e",
+	CONTROL_R= "21f",
+	ALT_L = "220",
+	ALT_R = "221",
+	RESIZE = "222",
+	SUP = "223",
+	SDOWN = "224"
 }
 
 local function adapter()
@@ -332,11 +332,16 @@ local function adapter()
 		end
 
 		local function preparecolor()
+			local flipflop = ffi.new("int[?]", 8)
+			flipflop[0], flipflop[1], flipflop[2], flipflop[3],
+			flipflop[4], flipflop[5], flipflop[6], flipflop[7] = 
+			0, 4, 2, 6, 1, 5, 3, 7 -- pdc uses a different color space than ncurses
+
 			if pdcurses.has_colors() then
 				pdcurses.start_color( )
 				for bg = 0, 7 do
 					for fg = 0, 7 do
-						pdcurses.init_pair(1 + fg + bg * 8, fg, bg)
+						pdcurses.init_pair(1 + fg + bg * 8, flipflop[fg], flipflop[bg])
 					end
 				end
 			end
@@ -368,7 +373,8 @@ local function adapter()
 	local current_timeout = -1
 
 	local function settitle(title)
-		io.stdout:write("\027]2;", title, "\007") -- ESC ]0; title BEL
+		-- this is actually system specific, so pdc and nc should use the same Sys.* logic
+		-- io.stdout:write("\027]2;", title, "\007") -- ESC ]0; title BEL
 	end
 
 	local function putch(x, y, ch)
@@ -404,12 +410,12 @@ local function adapter()
 	end
 
 	local current_attr = -1
-	local flipflop = {0, 4, 2, 6, 1, 5, 3, 7} -- pdc uses a different color space than ncurses
+
 	color4 = function(fg, bg)
 		-- # define PDC_COLOR_SHIFT 24
 		-- #define COLOR_PAIR(n)      (((chtype)(n) << PDC_COLOR_SHIFT) & A_COLOR)
 
-		local color = bit.lshift(1 + flipflop[bit.band(7, fg)] + 8 * flipflop[bit.band(7, bg)], 24)
+		local color = bit.lshift(1 + bit.band(7, fg) + 8 * bit.band(7, bg), 24)
 
 		if hasbold and fg > 7 then
 			color = bit.bor(color, attr.bold)

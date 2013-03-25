@@ -9,8 +9,6 @@ local ERRORED_OUT = false
 _G.DEBUG_MODE = true
 _G.VICTORY = false
 
--- local pds = require "pds/pds"
-
 local compass = {
 	h = {-1, 0},
 	j = {0, 1},
@@ -37,6 +35,8 @@ local remap = {
 
 	ic = "i",
 	[ [[0]] ] = "i",
+	[ [[-]] ] = "d",
+	enter = "a",
 	
 	home = "y",
 	[ [[end]] ] = "b",
@@ -54,12 +54,27 @@ local remap = {
 	[ [[9]] ] = "u",
 
 	a1 = "y",
+	a2 = "k",
 	a3 = "u",
+	b1 = "h",
 	b2 = ".",
+	b3 = "l",
 	c1 = "b",
+	c2 = "j",
 	c3 = "n",
+
+	ctl_pad1 = "B",
+	ctl_pad2 = "J",
+	ctl_pad3 = "N",
+	ctl_pad4 = "H",
+	ctl_pad5 = "Z",
+	ctl_pad6 = "L",
+	ctl_pad7 = "Y",
+	ctl_pad8 = "K",
+	ctl_pad9 = "U",
 	
 	f1 = "?",
+	f40 = "Q", -- under pdcurses, on Windows, this is what we get for alt-f4
 	help = "?"
 }
 
