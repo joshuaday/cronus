@@ -11,8 +11,9 @@ local coerce = require("coerce")
 -- must specify color capabilities.
 
 
---local mode = "libtcod"
-local mode = "curses"
+--local mode = "term-libtcod"
+--local mode = "term-nc"
+local mode = "term-auto"
 
 local term = { }
 local term_mt = { __index = term }
@@ -250,7 +251,7 @@ function term:napms(ms)
 	self.adapter.napms(ms)
 end
 
-function term:getms(ms)
+function term:getms()
 	return self.adapter.getms()
 end
 
