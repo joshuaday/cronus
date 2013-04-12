@@ -382,12 +382,17 @@ function level:addcog(cog)
 end
 
 function level:removecog(cog)
+	-- todo : make it so that removal of a cog DOES NOT force an immediate refresh of the various cog.idx values
+	--        (there are lots of possible approaches to this)
+
 	if cog.dlvl == self then
+		self:restamp(cog, false)
 		self.dirty = true
 		for i = 1, #self.cogs do
 			if self.cogs[i] == cog then
 				table.remove(self.cogs, i)
 				cog.dlvl = nil
+				self:refresh() -- blekh
 				return cog
 			end
 		end
