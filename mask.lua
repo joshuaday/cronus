@@ -6,11 +6,11 @@ local cache = { }
 function Mask.new(w, h, tag)
 	if tag then
 		if not cache[tag] then
-			cache[tag] = Layer.new("double", w, h)
+			cache[tag] = Layer.new("int", w, h)
 		end
 		return cache[tag]
 	else
-		return Layer.new("double", w, h)
+		return Layer.new("int", w, h)
 	end
 end
 
@@ -78,10 +78,10 @@ function Mask.circle(w, h)
 		local outer_x = math.sqrt(r2 - y * y)
 		local inner_x = math.sqrt(falloff_r2 - y * y)
 		for x = -radius, -math.floor(outer_x) do
-			output:set(x, y, 0.0)
-			output:set(-x, y, 0.0)
-			output:set(x, -y, 0.0)
-			output:set(-x, -y, 0.0)
+			output:set(x, y, 0)
+			output:set(-x, y, 0)
+			output:set(x, -y, 0)
+			output:set(-x, -y, 0)
 		end
 		for x = math.floor(-outer_x), -math.floor(inner_x) do
 			local d2 = y * y + x * x

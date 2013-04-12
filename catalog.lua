@@ -77,6 +77,8 @@ local levels = {
 -- 4   blocks non-watery
 -- 8   blocks non-flying
 -- 16  blocks non-firey
+-- 32  blocks items (set on items themselves)
+
 
 local raw_tiles = {
 	void = {

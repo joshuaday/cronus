@@ -1,0 +1,19 @@
+#! /bin/bash
+
+mkdir cronus-0.7drl
+
+cp *.lua \
+	cronus \
+	shared-header.h \
+	pdcurses.dll \
+	luajit/luajit.exe \
+	luajit/lua51.dll \
+	pdc/pdcurses.dll \
+	launch.bat \
+	README \
+	cronus-0.7drl
+
+zip -r cronus-0.7drl.zip cronus-0.7drl
+
+rm -r cronus-0.7drl
+

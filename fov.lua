@@ -12,6 +12,8 @@ ffi.cdef [[
 
 local bufs = {ffi.new("fovhead"), ffi.new("fovhead")}
 
+-- fovhead_zoomto always works with floating point, but the scan function
+-- has been adapted to give integral output
 function fovhead_zoomto(dest, src, close_angle, inv_angle, cell_color)
 	local endangle = dest.angle[dest.idx - 1]
 	
@@ -96,7 +98,7 @@ local nonmask = {
 	get = function () return 1.0 end
 }
 
-local function fov(board, output, view_x, view_y, mask)
+local function scan(board, output, view_x, view_y, mask, integer_permittivity)
 	local src, dest = bufs[1], bufs[2]
 	local range = math.ceil(math.max(output.height, output.width) / 2)
 
@@ -151,7 +153,8 @@ local function fov(board, output, view_x, view_y, mask)
 					-- the commented test makes it faster, but causes weird artifacts
 					local info = board.cells[index]
 					local sight = fovhead_zoomto(dest, src, close, inv_cell_length, board.cells[index])
-					out_cells[idx] = m * sight
+					-- out_cells[idx] = sight * m-- double version
+					out_cells[idx] = sight > integer_permittivity and m or 0 -- integer version
 				else
 					-- a hack to keep the skipping happy.  doesn't work, though.
 					dest.angle[dest.idx - 1] = close
@@ -170,6 +173,6 @@ local function fov(board, output, view_x, view_y, mask)
 end
 
 return {
-	scan = fov
+	scan = scan
 }
 

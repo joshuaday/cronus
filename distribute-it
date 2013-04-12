@@ -1,0 +1,11 @@
+#! /bin/bash
+
+if [ -d ~/remote/cronus ]; then
+	./tar-it
+	./zip-it
+
+	cp *.zip *.tar.gz ~/remote/cronus/
+else
+	echo Mount a site at ~/remote first
+fi
+

@@ -17,28 +17,34 @@ local tiles = Catalog.tiles
 local FOV_OFF = false
 
 function level:refresh()
-	-- clear the level to void
-	self.transparency:zero()
-	self.blocking:zero()
-	self.top:zero()
+	-- the level is marked dirty whenever operations that cannot be kept consistent are taken
+	-- (generally once per turn, or more for combat and spawning and the slike)
+	if self.dirty then
+		-- clear the level to void
+		self.transparency:zero()
+		self.blocking:zero()
+		self.top:zero()
 
-	self.blocking:set_default(1) -- obstructions outside
+		self.blocking:set_default(1) -- obstructions outside
 
-	self.fg:zero()
-	self.bg:zero()
-	self.glyph:zero()
+		self.fg:zero()
+		self.bg:zero()
+		self.glyph:zero()
 
-	-- copy cogs onto the level, maintaining the cog list (top->down->down->down->...),
-	-- which tells us which cogs are overlapping in each cell of the map,
-	for i = 1, #self.cogs do
-		self.cogs[i].idx = i
-		self.cogs[i]:stamp(self)
+		-- copy cogs onto the level, maintaining the cog list (top->down->down->down->...),
+		-- which tells us which cogs are overlapping in each cell of the map,
+		for i = 1, #self.cogs do
+			self.cogs[i].idx = i
+			self.cogs[i]:stamp(self)
+		end
+
+		self.dirty = false
+
+		-- update the level's auxiliary masks (opacity and obstruction)
+		-- self.tiles:each()
+		
+		-- self.cogs[2]:push(math.random(3) - 2, math.random(3) - 2)
 	end
-
-	-- update the level's auxiliary masks (opacity and obstruction)
-	-- self.tiles:each()
-	
-	-- self.cogs[2]:push(math.random(3) - 2, math.random(3) - 2)
 end
 
 function level:update()
@@ -176,42 +182,130 @@ function level:topmost(x, y, fn)
 	end
 end
 
+local function wipe_stamped_cell(level, x, y)
+	-- uncertain here?
+end
+
+local function cell_stamp(level, cog, tile_idx, x, y)
+	-- this is an auxiliary function used by stamp and unstamp both.
+	-- it applies the tile in question of the cog in question to the
+	-- dungeon's current cache
+
+	-- assumes that tile_idx > 0 (i.e., the cog actually exists in this cell)
+
+	local tile = Catalog.tiles[tile_idx]
+	if tile.glyph then level.glyph:set(x, y, string.byte(tile.glyph)) end
+	
+	local fg, bg = cog.fg or tile.fg, cog.bg or tile.bg
+	if bg then
+		level.bg:set(x, y, bg)
+		if fg then level.fg:set(x, y, fg) end
+	else
+		if fg then
+			level.fg:set(x, y, level.bg:get(x, y) == fg and (fg == 0 and 4 or 0) or fg)
+		end
+	end
+
+	level.transparency:set(x, y, tile.transparency)
+	level.blocking:set(x, y, tile.blocking)
+end
+
+-- todo - there is a whole lot of repeated logic among the three stamping routines 
+
+local unstamp_stack = { } -- ugly but better than the alternative -- it'll grow to the proper size and we never need to worry
+function level.restamp(level, cog, include)
+	-- remove the cog from the linked list of overlapped cogs (very short -- no performance worries)
+	-- and regenerate the cells (from the remainder of the list) that still overlap it
+	
+	if not cog.idx then return end -- oy vey  todo : something else
+	cog.stamped = include
+	
+	for y = cog.map.y1, cog.map.y2 do
+		for x = cog.map.x1, cog.map.x2 do
+			local tile_idx = cog.map:get(x, y)
+			if tile_idx > 0 then
+				local link_layer = level.top
+
+				-- walk down the link structure, remove this cog from it, and stick it in the unstamp_stack
+				local us = 1 
+				local down
+
+				while true do
+					down = link_layer:get(x, y)
+
+					if down <= cog.idx then
+						break
+					end
+
+					local next_cog = level.cogs[down]
+					unstamp_stack[us], us = next_cog, us + 1
+					link_layer = next_cog.down
+				end
+
+				if down == cog.idx then
+					if not include then
+						-- remove it, since it shouldn't be here!
+						down = cog.down:get(x, y)
+						link_layer:set(x, y, down)
+					end
+				else
+					if include then
+						-- add it here, because it should be!
+						cog.down:set(x, y, down)
+						link_layer:set(x, y, cog.idx)
+
+						down = cog.idx
+					end
+				end
+
+				while down > 0 do
+					local next_cog = level.cogs[down]
+					unstamp_stack[us], us = next_cog, us + 1
+					link_layer = next_cog.down
+
+					down = link_layer:get(x, y)
+				end
+				
+				-- wipe this particular cell and stamp all other cogs onto it
+				wipe_stamped_cell(level, x, y)
+				
+				for i = us - 1, 1, -1 do
+					local next_cog = unstamp_stack[i]
+					local tile_idx = next_cog.map:get(x, y) -- todo -- don't reach in like this?
+
+					cell_stamp(level, next_cog, tile_idx, x, y)
+					unstamp_stack[i] = 0 -- not nil, because we don't want to free slots in this table ever
+				end
+			end
+		end
+	end
+end
+
 function level.stamp(level, cog)
 	cog.cells = 0
 
 	cog.down:zero()
+	-- it will definitely be better to do this without a closure -- this happens a whole lot each turn
 	cog.map:each(function(tile_idx, x, y)
 		if tile_idx > 0 then
+			-- track that we have another cell
 			cog.cells = cog.cells + 1
 
+			-- link this cell into the linked list of cogs here
 			local top = level.top:get(x, y)
-			if top ~= 0 then
-				cog.down:set(x, y, top)
-			end
-
-			local tile = Catalog.tiles[tile_idx]
+			cog.down:set(x, y, top)
 			level.top:set(x, y, cog.idx)
-			if tile.glyph then level.glyph:set(x, y, string.byte(tile.glyph)) end
-			if tile.bg then
-				level.bg:set(x, y, tile.bg)
-				if tile.fg then level.fg:set(x, y, tile.fg) end
-			else
-				if tile.fg then
-					level.fg:set(x, y, level.bg:get(x, y) == tile.fg and (tile.fg == 0 and 4 or 0) or tile.fg)
-				end
-			end
 
-			level.transparency:set(x, y, tile.transparency)
-			level.blocking:set(x, y, tile.blocking)
-			
-			-- update the level's properties (or maybe wait until we actually need them, using the down list?)
+			-- stamp the content onto the level
+			cell_stamp(level, cog, tile_idx, x, y)
 		end
+		-- update the level's properties (or maybe wait until we actually need them, using the down list?)
 	end)
 	return level
 end
 
 function level:update_fov()
-	-- do an fov scan for everything that can see, and then stamp them onto the fov layer
+	-- do an fov scan for everything that can see, and then stamp them onto the player's fov layer if friendly
 	self.fov:zero()
 	for i = 1, #self.cogs do
 		local eye = self.cogs[i]
@@ -219,10 +313,10 @@ function level:update_fov()
 			local eye_x, eye_y = eye.map.x1, eye.map.y1
 			eye.fov:recenter(eye_x, eye_y)
 
-			Fov.scan(self.transparency, eye.fov, eye_x, eye_y, eye.fov_mask)
+			Fov.scan(self.transparency, eye.fov, eye_x, eye_y, eye.fov_mask, 0.0)
 
 			if eye.team == "player" then
-				self.fov:stamp(eye.fov, math.max)
+				self.fov:stamp(eye.fov, bit.bor)
 			end
 		end
 	end
@@ -237,12 +331,14 @@ function level:draw(term)
 			local bright = self.fov:get(x, y)
 			local fg, bg, glyph
 
-			if FOV_OFF or bright > 0 then -- todo : enable fov
+			if FOV_OFF or bright > 0 then
 				fg = self.fg:get(x, y)
 				bg = self.bg:get(x, y)
 				glyph = self.glyph:get(x, y)
 
-				self.memory:set(x, y, glyph)
+				if bright > 0 then -- double check for FOV_OFF mode
+					self.memory:set(x, y, glyph)
+				end
 			else
 				fg, bg = 5, 0
 				glyph = self.memory:get(x, y)
@@ -264,6 +360,8 @@ end
 
 function level:addcog(cog)
 	if cog.dlvl ~= self then
+		self.dirty = true
+
 		-- also remove the cog from any level it's on right now
 		if cog.dlvl then
 			cog.dlvl:removecog(cog)
@@ -271,6 +369,8 @@ function level:addcog(cog)
 
 		local ins = #self.cogs
 		while ins > 0 and self.cogs[ins].priority > cog.priority do
+			-- todo: mark dirty?
+			-- self.cogs[ins].idx = ins
 			ins = ins - 1
 		end
 
@@ -283,6 +383,7 @@ end
 
 function level:removecog(cog)
 	if cog.dlvl == self then
+		self.dirty = true
 		for i = 1, #self.cogs do
 			if self.cogs[i] == cog then
 				table.remove(self.cogs, i)
@@ -300,7 +401,7 @@ function level:spawn(name)
 
 	local range = 13
 	if dude.info.ai == "you" then
-		dude.fov = Layer.new("double", range * 2 + 1, range * 2 + 1)
+		dude.fov = Layer.new("int", range * 2 + 1, range * 2 + 1)
 		dude.fov_mask = Mask.circle(range * 2 + 1, range * 2 + 1)
 	end
 	dude.team = "dungeon"
@@ -391,9 +492,11 @@ local function new_level(width, height, dlvl_up)
 		top = Layer.new("int", width, height), -- the top cog in the cog stack for each tile
 		transparency = Layer.new("double", width, height),
 		blocking = Layer.new("int", width, height), -- actually a bitfield
-		fov = Layer.new("double", width, height),
+		fov = Layer.new("int", width, height),
 
 		voidcog = Cog.new(1, 1),
+
+		dirty = true,
 
 		entry = {x = 2, y = math.floor(.5 * height)}, -- updated later if it's not dlvl 1
 		exit = { }

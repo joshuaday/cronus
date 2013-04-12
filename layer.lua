@@ -218,7 +218,7 @@ function layer:all(f)
 end
 
 function layer:stamp(l2, fn)
-	assert(self.ctype == l2.ctype)
+	assert(self.ctype == l2.ctype, "layers of different types (" .. self.ctype .. ", " .. l2.ctype .. ") in stamp")
 	
 	l2:each(function(v, x, y)
 		local idx = self:index(x, y)

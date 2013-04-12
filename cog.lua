@@ -107,10 +107,17 @@ function cog:get(x, y)
 end
 
 function cog:moveto(x, y)
-	-- mark dirty?
+	if self.dlvl then
+		self.dlvl:restamp(self, false)
+	end
+
 	self.map:moveto(x, y)
 	self.down:moveto(x, y)
 	self.x1, self.y1 = x, y
+
+	if self.dlvl then
+		self.dlvl:restamp(self, true)
+	end
 end
 
 local eight_ways = {{-1, -1}, {0, -1}, {1, -1}, {1, 0}, {1, 1}, {0, 1}, {-1, 1}, {-1, 0}} -- todo merge these
@@ -134,6 +141,8 @@ end
 function cog:can_stand_at(x, y)
 	local blocked = false
 	local oldx, oldy = x, y
+
+	-- todo: don't actually move it for this test!  silly, very silly
 	self:moveto(x, y)
 	
 	self.dlvl:overlap(self, function (cog, x, y)
@@ -453,11 +462,9 @@ function cog:automove(dx, dy)
 
 				attempt_bump_attack("lunge")
 			else
-				self.dlvl:refresh()
 				local bumped, fought = attempt_bump_attack()
 				if fought then
-					self.dlvl:refresh() -- terrible, terrible
-
+					self.dlvl:refresh() -- todo : remove when consistency is maintained by adding/removing cogs
 					self:endturn() -- todo : move this elsewhere
 					self.has_initiative = false
 
@@ -470,7 +477,6 @@ function cog:automove(dx, dy)
 						return
 					end
 					-- find a message
-					self.dlvl:refresh()
 					local complaint = self.dlvl:topmost(self.x1 + dx, self.y1 + dy, function(cog, tile)
 						return tile.complaint
 					end) or "The gap is too narrow."
@@ -507,7 +513,7 @@ function cog:pickup(item, autoequip)
 		local range = 13
 
 		item.team = "player"
-		item.fov = Layer.new("double", range * 2 + 1, range * 2 + 1)
+		item.fov = Layer.new("int", range * 2 + 1, range * 2 + 1) -- unify with the other fov code
 		item.fov_mask = Mask.circle(range * 2 + 1, range * 2 + 1)
 	end
 
@@ -588,9 +594,7 @@ function cog:push(dx, dy)
 		return false
 	else
 		-- single-step motion is easy to resolve
-
 		self:moveto(x + dx, y + dy)
-		self.dlvl:refresh()
 		
 		-- check for collisions
 		local blocked = false
@@ -621,7 +625,7 @@ function cog:push(dx, dy)
 			return false
 		end
 
-		self.lastdx, self.lastdy = dx, dy -- mark motion for, e.g., slipping
+		self.vx, self.vy = dx, dy -- mark motion for, e.g., slipping
 		return true
 	end
 end

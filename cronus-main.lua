@@ -199,6 +199,11 @@ local function simulate(term)
 			return
 		end
 
+		if DEBUG_MODE and key == "f7" then
+			dlvl.dirty = true
+			return
+		end
+
 		if key == "Q" then
 			-- Menu:dialog (term, "Quit?")
 			hasquit = true
