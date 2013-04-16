@@ -166,6 +166,28 @@ function level:overlap(cog, fn)
 	end)
 end
 
+function level:would_overlap(cog, x, y, fn)
+	local dx, dy = x - cog.x1, y - cog.y1
+	cog:each(function (_, x, y)
+		x, y = x + dx, y + dy
+		local cog_idx = self.top:get(x, y)
+		-- notice that if a cog appears in the overlap list, then the cell
+		-- it shares is not empty
+		if cog_idx == 0 then
+			-- must be outside the map!
+			fn(self.voidcog, x, y)
+		else
+			while cog_idx ~= 0 do
+				local next_cog = self.cogs[cog_idx]
+				if next_cog ~= cog then
+					fn(next_cog, x, y)
+				end
+				cog_idx = next_cog.down:get(x, y)
+			end
+		end
+	end)
+end
+
 function level:topmost(x, y, fn)
 	local cog_idx = self.top:get(x, y)
 	if cog_idx == 0 then
@@ -218,6 +240,7 @@ function level.restamp(level, cog, include)
 	-- and regenerate the cells (from the remainder of the list) that still overlap it
 	
 	if not cog.idx then return end -- oy vey  todo : something else
+	if cog.stamped == include then return end
 	cog.stamped = include
 	
 	for y = cog.map.y1, cog.map.y2 do
@@ -284,6 +307,7 @@ end
 function level.stamp(level, cog)
 	cog.cells = 0
 
+	cog.stamped = true
 	cog.down:zero()
 	-- it will definitely be better to do this without a closure -- this happens a whole lot each turn
 	cog.map:each(function(tile_idx, x, y)
@@ -550,7 +574,7 @@ local function new_level(width, height, dlvl_up)
 	end
 
 	--local ss_seq = {0, 0, 0, 30, 3, 3, 3, 0, 0, 2}
-	local ss_seq = {0, 6, 20, 0, 0, 3}
+	local ss_seq = {0, 6, 20, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10}
 	local ss, numsofar = #ss_seq, 0
 	
 	while true do
@@ -703,6 +727,25 @@ local function new_level(width, height, dlvl_up)
 
 	-- rocks.map:set(20, 20, Catalog:idx("handle"))
 
+	local function make_a_rock_temp(x, y, linkto)
+		local boulder = Cog.new(1, 1)
+		boulder:set(1, 1, "boulder")
+		self:addcog(boulder)
+		boulder:moveto(x, y)
+
+		if linkto then
+			-- todo : make both use the same link table?
+			boulder.link = {cog = linkto, dx = -1, dy = -1}
+			linkto.link = {cog = boulder, dx = -1, dy = -1}
+		end
+
+		return boulder
+	end
+	local BOULDER = make_a_rock_temp(15, 5)
+	make_a_rock_temp(15, 6, BOULDER)
+	BOULDER = make_a_rock_temp(15, 7)
+	make_a_rock_temp(15, 8, BOULDER)
+	make_a_rock_temp(15, 9)
 
 
 	-- now splash a bunch of foliage and stuff onto the floor
@@ -727,12 +770,12 @@ local function new_level(width, height, dlvl_up)
 		end
 	end
 
-	-- splash_some("ice", 30) -- ice is still buggy
-	-- splash_some("ice", 30)
-	-- splash_some("ice", 30)
-	splash_some("water", 90)
-	splash_some("water", 90)
-	splash_some("water", 90)
+	splash_some("ice", 30) -- ice is still buggy
+	splash_some("ice", 30)
+	splash_some("ice", 30)
+	splash_some("water", 50)
+	splash_some("water", 50)
+	splash_some("water", 50)
 	splash_some("bushes", 12)
 	splash_some("bushes", 12)
 	splash_some("bushes", 12)
@@ -748,7 +791,6 @@ local function new_level(width, height, dlvl_up)
 	-- the map connectivity untouched) and push them backwards into their starting
 	-- configuration.  repeat many times to layer multiple puzzles on top of each
 	-- other.
-	
 
 	Puzzle.puzzlify(self, bigmask)
 

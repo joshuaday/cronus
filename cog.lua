@@ -31,9 +31,9 @@ local function new_mob_cog(spawn_name)
 
 	local self = new_cog(1, 1)
 	self.map:set(1, 1, spawn.tile.idx)
-	--self.map:set(1, 3, Catalog:idx(tile_type))
-	--self.map:set(3, 1, Catalog:idx(tile_type))
-	--self.map:set(3, 3, Catalog:idx(tile_type))
+	--self.map:set(1, 3, spawn.tile.idx)
+	--self.map:set(3, 1, spawn.tile.idx)
+	--self.map:set(3, 3, spawn.tile.idx)
 
 	self.info = spawn
 	self.tile = tile
@@ -140,38 +140,142 @@ end
 
 function cog:can_stand_at(x, y)
 	local blocked = false
-	local oldx, oldy = x, y
 
-	-- todo: don't actually move it for this test!  silly, very silly
-	self:moveto(x, y)
-	
-	self.dlvl:overlap(self, function (cog, x, y)
+	self.dlvl:would_overlap(self, x, y, function (cog, x, y)
 		local tile = cog:gettile(x, y)
 		if tile.blocking > 0 then
 			blocked = true
 		end
 	end)
-	self:moveto(oldx, oldy)
 
 	return not blocked
 end
 
 function cog:may_take_step(dx, dy)
+	-- todo: adapt for media
+	-- todo: enumerate complaints
+
 	local dlvl = self.dlvl
 
-	if dlvl.blocking:get(self.x1 + dx, self.y1 + dy) > 0 then
-		return false 
-	end
+	local old_stamped = self.stamped
+	dlvl:restamp(self, false)
 
-	if dx ~= 0 and dy ~= 0 then
-		if dlvl.blocking:get(self.x1 + dx, self.y1) == 2
-		   and dlvl.blocking:get(self.x1, self.y1 + dy) == 2 
-		then
-			return false
+	for y = self.map.y1, self.map.y2 do
+		for x = self.map.x1, self.map.x2 do
+			local idx = self.map:get(x, y)
+			if idx ~= 0 then
+				-- the cog has a presence in this cell, so make sure this cell can move properly:
+				local tile = Catalog.tiles[idx]
+
+				if 0 ~= bit.band(3, dlvl.blocking:get(x + dx, y + dy)) then 
+					dlvl:restamp(self, old_stamped)
+					return false
+				end
+
+				if dx ~= 0 and dy ~= 0 then
+					if 2 < bit.band(2, dlvl.blocking:get(x + dx, y))
+					   + bit.band(2, dlvl.blocking:get(x, y + dy))
+					   + bit.band(2, tile.blocking)
+					then
+						dlvl:restamp(self, old_stamped)
+						return false
+					end
+				end
+			end
 		end
 	end
 
+	dlvl:restamp(self, old_stamped)
+
 	return true
+end
+
+function cog:remove_pushes(dx, dy)
+	-- todo : put this on the dlvl instead of cog
+
+	-- this IGNORES all diagonal rules and inserts (into 'bumps') all cells that
+	-- would be push-interacted with if the step were taken
+
+	local dlvl = self.dlvl
+	local bumps = { }
+	local wontbudge = false
+
+	local function addbump(bump)
+		if bumps[bump.cog] then
+			-- make sure it's the same as what's there, or it's invalid
+			local oldbump = bumps[bump.cog]
+			if bump.dx == oldbump.dx and bump.dy == oldbump.dy then
+				-- ok
+			else
+				-- trying to push one cog two directions will always fail
+				oldbump.failed = true
+				wontbudge = true
+			end
+		else
+			bumps[bump.cog] = bump
+			bumps[1 + #bumps] = bump
+
+			-- add linked cogs too!
+			if bump.cog.link then
+				local link = bump.cog.link
+				local cog = bump.cog.link.cog
+				addbump {cog = cog, dx = link.dx * bump.dx, dy = link.dy * bump.dy}
+			end
+		end
+	end
+
+	addbump {cog = self, dx = dx, dy = dy}
+
+	-- whittle down the numbered array of bumps until none remain; for each one,
+	-- look at which others will be pushed by it, and so forth.  each one will
+	-- be removed from the map as we proceed; inconsistencies (except the most
+	-- trivial) will be handled later.
+
+	while #bumps > 0 do
+		local bump = bumps[1]
+		local mover = bump.cog
+		local dx, dy = bump.dx, bump.dy
+
+		bump.old_stamped = mover.stamped
+		dlvl:restamp(mover, false)
+		for y = mover.map.y1, mover.map.y2 do
+			for x = mover.map.x1, mover.map.x2 do
+				local idx = mover.map:get(x, y)
+				if idx ~= 0 then
+					-- the cog has a presence in this cell, so check what this cell's presence will bump
+					-- (note that this cell should probably be marked as an INTERACTOR/WEAPON/etc.)
+					-- (but that for now, this rule is not respected, even remotely.)
+					local tile = Catalog.tiles[idx]
+
+					local cx, cy = x + dx, y + dy
+
+					-- detect the cogs that are in the position we're peeking at, and detect
+					-- which cells of theirs are there
+					
+					local cog_idx = dlvl.top:get(cx, cy)
+					while cog_idx ~= 0 do
+						local cog = dlvl.cogs[cog_idx]
+						local tile2 = cog:gettile(cx, cy)
+						
+						if tile2.interact == "push" then
+							addbump {cog = cog, interact = tile2.interact, x = cx, y = cy, dx = dx, dy = dy}
+							if wontbudge then
+								return false, bumps
+							end
+						end
+
+						cog_idx = cog.down:get(cx, cy)
+					end
+				end
+			end
+		end
+		bumps[1] = bumps[#bumps]
+		bumps[#bumps] = nil
+	end
+
+	-- now put them all back on the map?
+
+	return true, bumps
 end
 
 function cog:autorun_stop_point(dir)
@@ -440,8 +544,8 @@ function cog:automove(dx, dy)
 
 	if self.has_initiative then
 		if dx == 0 and dy == 0 then
-			if self:get_floor() == "slick" and (self.lastdx ~= 0 or self.lastdy ~= 0) then
-				return self:automove(self.lastdx or 0, self.lastdy or 0)
+			if self:get_floor() == "slick" and (self.vx ~= 0 or self.vy ~= 0) then
+				-- return self:automove(self.lastdx or 0, self.lastdy or 0)
 			end
 
 			-- just yield initiative
@@ -546,6 +650,12 @@ function cog:endturn()
 	end
 end
 
+function cog:newpush(dx, dy)
+	-- collect all the cogs that get engaged by this motion
+
+end
+
+
 function cog:push(dx, dy)
 	-- kicks off a wonderful recursive process of making sure that everything involved can be pushed.
 	--
@@ -558,76 +668,80 @@ function cog:push(dx, dy)
 	--                    if B also moves C 
 	
 	local x, y = self.x1, self.y1
+
+
+	-- step one: enumerate everything that would be PUSHED by this motion
+
+	local dlvl = self.dlvl
+	local valid, bumps = self:remove_pushes(dx, dy)
+
+	if valid then
+		-- notice also that all of these cogs have been UNSTAMPED from the map as a side effect of
+		-- enumerate_pushes
+		local blocked = false
+		for cog, bump in pairs(bumps) do
+			if not cog:may_take_step(bump.dx, bump.dy) then
+				blocked = true
+			end
+		end
+
+		-- put them all back on the map now!
+		for cog, bump in pairs(bumps) do
+			dlvl:restamp(cog, true)
+		end
+
+		if blocked then
+			-- it won't budge!
+			return false
+		end
+
+		-- ok!
+		for cog, bump in pairs(bumps) do
+			cog:moveto(cog.x1 + bump.dx, cog.y1 + bump.dy)
+		end
+	else
+		-- in any case, put them all back on the map
+		for cog, bump in pairs(bumps) do
+			if type(cog) == "table" then -- filter out numeric entries (which are left in erroneously)
+				dlvl:restamp(cog, true)
+			end
+		end
+	end
+
+
+
+	-- now run through all of these 
+	
 	
 	-- todo : adapt floor_type to work for bigger cogs !
-	local floor_type = self:get_floor()
+	--[[ local floor_type = self:get_floor()
 	
 	if floor_type == "slick" then
-		local dx1, dy1 = self.lastdx or 0, self.lastdy or 0
+		if dx ~= self.vx or dy ~= self.vy then
+			-- return false
+		end
+ 
+		--[==[local dx1, dy1 = self.lastdx or 0, self.lastdy or 0
 		if dx == 0 and dy == 0 then
 			dx, dy = dx1, dy1
 		else
 			-- you can turn but you can't stop
 			
-		end
-	end
+		end]==]
+	end ]] 
 	
-	self.lastdx, self.lastdy = 0, 0
+	-- single-step motion is easy to resolve
 	
-	local distance = math.abs(dx) + math.abs(dy)
-	if distance > 1 then
-		-- decompose the motion into single steps and try them in arbitrary order until something sticks
-		if self:push(dx, 0) then
-			if self:push(0, dy) then
-				return true
-			else
-				self:moveto(x, y)
-			end
-		end
-		if self:push(0, dy) then
-			if self:push(dx, 0) then
-				return true
-			else
-				self:moveto(x, y)
-			end
-		end
+	--[[self:moveto(x + dx, y + dy)
+
+	if blocked then
+		-- revert the motion
+		self:moveto(x, y)
 		return false
-	else
-		-- single-step motion is easy to resolve
-		self:moveto(x + dx, y + dy)
-		
-		-- check for collisions
-		local blocked = false
-		local interaction, interacting = nil, nil
+	end]]
 
-		self.dlvl:overlap(self, function (cog, x, y)
-			local tile = cog:gettile(x, y)
-			if tile.interact then
-				interaction, interacting = tile.interact, cog
-			end
-			if tile.blocking > 0 then
-				blocked = true
-			end
-		end)
-		
-		if interaction then
-			if interaction == "push" then
-				blocked = not interacting:push(dx, dy)
-			end
-			if interaction == "down" then
-				-- 
-				-- blocked = false
-			end
-		end
-		if blocked then
-			-- revert the motion
-			self:moveto(x, y)
-			return false
-		end
-
-		self.vx, self.vy = dx, dy -- mark motion for, e.g., slipping
-		return true
-	end
+	self.vx, self.vy = dx, dy -- mark motion for, e.g., slipping
+	return true
 end
 
 return {

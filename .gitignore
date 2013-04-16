@@ -1,5 +1,6 @@
 *.swp
 *.tar
+*.zip
 *.dll
 *.so
 pdc/
