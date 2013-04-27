@@ -111,14 +111,15 @@ local function scan(board, output, view_x, view_y, mask, integer_permittivity)
 	src.angle[0] = 0
 
 	-- output.recenter(view_x, view_y) -- this is now an external requirement
-	output:fill(opaque)
-	output:set(view_x, view_y, clear)
 
 	if mask then
 		mask:recenter(view_x, view_y)
 	else
 		mask = nonmask
 	end
+
+	output:fill(opaque)
+	output:set(view_x, view_y, mask:get(view_x, view_y))
 
 	local out_cells, out_width = output.cells, output.width
 	

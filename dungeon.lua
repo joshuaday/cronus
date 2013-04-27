@@ -363,6 +363,12 @@ function level:draw(term)
 				if bright > 0 then -- double check for FOV_OFF mode
 					self.memory:set(x, y, glyph)
 				end
+
+				if bright == 2 then
+					-- seen only through a viewcam
+					fg = 15
+					bg = 4
+				end
 			else
 				fg, bg = 5, 0
 				glyph = self.memory:get(x, y)

@@ -26,6 +26,7 @@ end
 
 local function new_mob_cog(spawn_name)
 	-- mobs will be fashioned better soon
+	-- todo : add mobs with maps!
 	local spawn = Catalog.spawns[spawn_name]
 	local tile = spawn.tile
 
@@ -618,7 +619,7 @@ function cog:pickup(item, autoequip)
 
 		item.team = "player"
 		item.fov = Layer.new("int", range * 2 + 1, range * 2 + 1) -- unify with the other fov code
-		item.fov_mask = Mask.circle(range * 2 + 1, range * 2 + 1)
+		item.fov_mask = Mask.circle(range * 2 + 1, range * 2 + 1):replace(1, item.info.fov_color or 1)
 	end
 
 	-- put it in the bag

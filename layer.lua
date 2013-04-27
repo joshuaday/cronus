@@ -73,6 +73,7 @@ function layer:replace(old, sub)
 			self.cells[i] = sub
 		end
 	end
+	return self
 end
 
 function layer:rolldown(x, y)

@@ -403,7 +403,7 @@ local raw_items = {
 		name = "timed detonator", tile = "detonator", does = "detonates"
 	},
 	camera = {
-		name = "view cam", tile = "detonator", does = "fov"
+		name = "view cam", tile = "detonator", does = "fov", fov_color = 2
 	},
 	petn = {
 		name = "stick of PETN", tile = "tank", needs = "detonator", does = "explode", complaint = "blow yourself to pieces"
