@@ -3,6 +3,7 @@ local ffi = require "ffi"
 local Layer = require "layer"
 local Catalog = require "catalog"
 local Cog = require "cog"
+local Mob = require "mob"
 local Gen = require "gen"
 local Fov = require "fov"
 local Mask = require "mask"
@@ -430,7 +431,7 @@ function level:removecog(cog)
 end
 
 function level:spawn(name)
-	local dude = Cog.mob(name)
+	local dude = Mob.new(name)
 	dude:moveto(self.width + 1, self.height + 1) -- start it off the map
 	self:addcog(dude)
 
@@ -741,14 +742,14 @@ local function new_level(width, height, dlvl_up)
 
 		if linkto then
 			-- todo : make both use the same link table?
-			boulder.link = {cog = linkto, dx = -1, dy = -1}
-			linkto.link = {cog = boulder, dx = -1, dy = -1}
+			boulder.link = {cog = linkto, dx = 1, dy = -1}
+			linkto.link = {cog = boulder, dx = 1, dy = -1}
 		end
 
 		return boulder
 	end
 	local BOULDER = make_a_rock_temp(15, 5)
-	make_a_rock_temp(15, 6, BOULDER)
+	make_a_rock_temp(18, 5, BOULDER) -- note that an odd distance will make it possible to overlap (todo: fix)
 	BOULDER = make_a_rock_temp(15, 7)
 	make_a_rock_temp(15, 8, BOULDER)
 	make_a_rock_temp(15, 9)

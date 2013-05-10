@@ -9,6 +9,7 @@ local Layer = require "layer"
 local Catalog = require "catalog"
 local Messaging = require "messaging"
 local Mask = require "mask"
+local English = require "english"
 
 local cog = { }
 local cog_mt = { __index = cog }
@@ -21,33 +22,6 @@ local function new_cog(width, height)
 		x1 = 1, y1 = 1, priority = 1
 	}, cog_mt)
 	
-	return self
-end
-
-local function new_mob_cog(spawn_name)
-	-- mobs will be fashioned better soon
-	-- todo : add mobs with maps!
-	local spawn = Catalog.spawns[spawn_name]
-	local tile = spawn.tile
-
-	local self = new_cog(1, 1)
-	self.map:set(1, 1, spawn.tile.idx)
-	--self.map:set(1, 3, spawn.tile.idx)
-	--self.map:set(3, 1, spawn.tile.idx)
-	--self.map:set(3, 3, spawn.tile.idx)
-
-	self.info = spawn
-	self.tile = tile
-	self.active = spawn.ai ~= nil
-	self.health = spawn.health
-	self.name = spawn.name
-	self.priority = spawn.priority or 100
-	self.attack_pattern = spawn.attack_pattern
-
-	if spawn.bagslots then
-		self.bag = {slots = spawn.bagslots}
-	end
-
 	return self
 end
 
@@ -643,9 +617,9 @@ function cog:endturn()
 		for cog in pairs(items) do
 			local i = self:pickup(cog)
 			if i then
-				self:say ("A " .. cog.name .. " (" ..string.char(i - 1 + string.byte 'a') .. ")")
+				self:say (English.A(cog.name) .. " (" ..string.char(i - 1 + string.byte 'a') .. ")")
 			else
-				self:say ("No room for a " .. cog.name)
+				self:say ("No room for " .. English.a (cog.name))
 			end
 		end
 	end
@@ -747,7 +721,6 @@ end
 
 return {
 	new = new_cog,
-	mob = new_mob_cog,
 	item = new_item_cog
 }
 

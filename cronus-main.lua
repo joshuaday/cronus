@@ -124,6 +124,8 @@ you.team = "player"
 you:pickup(Cog.item "chisel", true)
 you:pickup(Cog.item "tank of air")
 you:pickup(Cog.item "petn")
+you:pickup(Cog.item "incendiary")
+you:pickup(Cog.item "oxypen")
 you:pickup(Cog.item "radio")
 you:pickup(Cog.item "camera")
 

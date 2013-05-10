@@ -1,3 +1,4 @@
+local English = require "english"
 local Menu = { }
 
 -- this "dry run" idea isn't a bad one, but I think I'd rather do proper
@@ -78,7 +79,7 @@ function Menu:inventory(term, bag, action)
 					:fg(item.tile.fg or 15):bg(item.tile.bg or 0)
 					:put(string.byte (item.tile.glyph)):put(string.byte ' ')
 					:fg(15)
-					:print("a "):print(item.name)
+					:print(English.a(item.name))
 				if item.equipped then
 					term:print(" (equipped)")
 				end

@@ -396,6 +396,9 @@ local raw_items = {
 	air = {
 		name = "tank of air", tile = "tank", does = "heal", SCORE = 2 -- more likely than other stuff
 	},
+	oxypen = {
+		name = "oxypen", tile = "tank", does = "heal", SCORE = 2 -- more likely than other stuff
+	},
 	radio = {
 		name = "remote detonator", tile = "detonator", does = "detonates"
 	},
