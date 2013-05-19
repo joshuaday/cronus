@@ -334,24 +334,22 @@ local function simulate(term)
 
 	local function protection(msg)
 		local traceback = string.split(debug.traceback(msg, 2), "\n")
-		local term = term.root:panel_from_cursor(term):wipe()
+
+
+		-- make a new panel
+		local panel = term.root:panel_from_cursor(term):wipe()
 
 		-- todo : wrap everything from here on in xpcall, too, and if an error comes up while
 		--        drawing the error panel, os.exit() our way out and dump the traceback to
 		--        stderr
 
-		-- term:mask(false)
+		-- fill the whole panel with a gray background
+		panel:fg(0):bg(7):fill()
 
-		local x1, y1, w, h = 0, 0, 60, 20 -- term:dryrun(false)
-		w = w + 5
-		h = h + 3
+		-- clip the working space to guarantee a border (on the left)
+		local term = panel:clip(2, 1, -4, -2)
 
-		x1, y1 = math.floor(40 - .5 * w), math.floor(12 - .5 * h)
-		term = term:clip(x1, y1, w, h)
-		term:fg(0):bg(7):fill()
-
-		term = term:clip(2, 1, -14, -12)
-
+		-- render the dialog content
 		local y = 0
 		term:bg(4):fg(11):at(0, y):print("There has been an error, but you can probably keep playing."):toend()
 		term:bg(7):fg(0)
@@ -367,7 +365,13 @@ local function simulate(term)
 		term:at(0, y):fg(11):bg(4):print("-- press space to continue, Q to quit --"):toend()
 
 		-- term = term:clip(0, 0, -24, -22)
-		term.panel:resize(term.width, term.height)
+		local x1, y1, w, h = term.panel:get_printable_bounds()
+		term.panel:resize(w + 4, h + 2)
+
+		panel.width, panel.height = w + 4, h + 2 -- hack hack hack -- todo : fix the connection between cursor and panel !!!
+		panel:clip(-2, 0, 0, 0):fg(0):bg(7):fill()
+		panel.panel.x1 = math.floor(.5 * (80 - w))
+		panel.panel.y1 = math.floor(.25 * (24 - h))
 		
 		ERRORED_OUT = true
 

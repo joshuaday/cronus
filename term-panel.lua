@@ -63,6 +63,7 @@ function Panel:getch(idx)
 		self.cells[idx].glyph
 end
 
+
 --[[
 function term:mask(on)
 	if on then
@@ -109,6 +110,30 @@ function Panel:index(x, y)
 	end
 	return x + y * self.width
 end
+
+function Panel:get_printable_bounds()
+	local x1, y1, x2, y2 = self.width, self.height, 0, 0
+	for y = 0, self.height - 1 do
+		local idx = self:index(0, y)
+		for x = 0, self.width - 1 do
+			local ch = self.cells[idx].glyph 
+			if ch > 32 then
+				if x < x1 then x1 = x end
+				if x > x2 then x2 = x end
+				if y < y1 then y1 = y end
+				if y > y2 then y2 = y end
+			end
+			idx = idx + 1
+		end
+	end
+
+	if x1 < x2 then
+		return x1, y1, 1 + x2 - x1, 1 + y2 - y1
+	else
+		return 0, 0, 0, 0
+	end
+end
+
 
 return {
 	new = new_panel

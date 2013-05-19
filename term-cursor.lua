@@ -20,9 +20,12 @@ end
 
 function Cursor:clip(x, y, w, h, mode)
 	x, y = x or 0, y or 0
+	if x < 0 then x = x + self.width end
+	if y < 0 then y = y + self.height end
+
 	w, h = w or (self.width - x), h or (self.height - y)
-	if w <= 0 then w = self.width + w end
-	if h <= 0 then h = self.height + h end
+	if w <= 0 then w = self.width + w - x end
+	if h <= 0 then h = self.height + h - y end
 
 	if mode == "square" then
 		if w * self.panel.aspect > h then
