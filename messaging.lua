@@ -41,7 +41,7 @@ end
 
 function Messaging:draw(term)
 	local ttl = 10000
-	local w, h = term:getsize()
+	local w, h = term.width, term.height
 
 	term:mask(true)
 	for i = 1, #log do

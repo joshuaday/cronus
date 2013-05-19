@@ -367,8 +367,7 @@ function level:draw(term)
 
 				if bright == 2 then
 					-- seen only through a viewcam
-					fg = 15
-					bg = 4
+					fg, bg = 12, 4
 				end
 			else
 				fg, bg = 5, 0

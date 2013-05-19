@@ -1,8 +1,11 @@
-local term = require "terminal"
+local Terminal = require "terminal"
 local Dungeon = require "dungeon"
 local Messaging = require "messaging"
 local Menu = require "menu"
 local Cog = require "cog"
+
+local topterm = Terminal.open()
+local term -- this will be clipped to 80x24
 
 local ERRORED_OUT = false
 
@@ -78,7 +81,8 @@ local remap = {
 	help = "?"
 }
 
-term:settitle "Cogs of Cronus"
+term = topterm:clip(0, 0, 80, 24)
+term.root:settitle "Cogs of Cronus"
 
 local function tell_story(story, and_then)
 	local chunk_idx = 1
@@ -243,7 +247,7 @@ local function simulate(term)
 				end
 			end
 			if key == "i" or key == "e" or key =="r" or key =="d" or key == "a" and you.bag then
-				term:erase()
+				term:bg(0):fill()
 				dlvl:draw(term) -- clear the screen of messages (for now)
 				local item, command, _, cb = Menu:inventory(term, you.bag, key)
 				if command then
@@ -265,7 +269,7 @@ local function simulate(term)
 	end
 
 	local time_step = 20
-	local last_time = term:getms()
+	local last_time = term.root:getms()
 
 	local function protected()
 		if ERRORED_OUT then
@@ -278,7 +282,7 @@ local function simulate(term)
 		local next_animation_event = Messaging:draw(term, next_animation_event)
 		local animating = next_animation_event ~= nil
 
-		term:refresh()
+		term.root:refresh()
 
 		if auto.time then
 			-- autorun
@@ -290,7 +294,7 @@ local function simulate(term)
 		interactiveinput(dlvl.going, next_animation_event)
 
 		if animating then
-			term:napms(0) -- give the os a slice in case we haven't yet
+			term.root:napms(0) -- give the os a slice in case we haven't yet
 		end
 
 		if VICTORY == true then
@@ -317,7 +321,7 @@ local function simulate(term)
 			}, you_lose)
 		end
 
-		local time_now = term:getms()
+		local time_now = term.root:getms()
 		local time_delta = time_now - last_time
 		last_time = time_now
 
@@ -330,39 +334,40 @@ local function simulate(term)
 
 	local function protection(msg)
 		local traceback = string.split(debug.traceback(msg, 2), "\n")
-		term:clip(0, 0, 80, 24)
-		term:mask(false)
-		term:dryrun(false)
+		local term = term.root:panel_from_cursor(term):wipe()
 
-		for i = 1, 2 do
-			if i == 1 then
-				term:dryrun(true)
-			else
-				local x1, y1, w, h = term:dryrun(false)
-				w = w + 5
-				h = h + 3
+		-- todo : wrap everything from here on in xpcall, too, and if an error comes up while
+		--        drawing the error panel, os.exit() our way out and dump the traceback to
+		--        stderr
 
-				x1, y1 = math.floor(40 - .5 * w), math.floor(12 - .5 * h)
-				term:clip(x1, y1, w, h)
-				term:fg(0):bg(7):fill()
+		-- term:mask(false)
 
-				term:clip(x1 + 2, y1 + 1, w - 4, h - 2)
-			end
+		local x1, y1, w, h = 0, 0, 60, 20 -- term:dryrun(false)
+		w = w + 5
+		h = h + 3
 
-			local y = 0
-			term:bg(4):fg(11):at(0, y):print("There has been an error, but you can probably keep playing."):toend()
-			term:bg(7):fg(0)
+		x1, y1 = math.floor(40 - .5 * w), math.floor(12 - .5 * h)
+		term = term:clip(x1, y1, w, h)
+		term:fg(0):bg(7):fill()
+
+		term = term:clip(2, 1, -14, -12)
+
+		local y = 0
+		term:bg(4):fg(11):at(0, y):print("There has been an error, but you can probably keep playing."):toend()
+		term:bg(7):fg(0)
+		y = y + 1
+		
+		for i = 1, #traceback do 
+			local line = traceback[i]
+			if line:match "xpcall" then break end -- stop when we get to xpcall
+			term:at(0, y):print(line)
 			y = y + 1
-			
-			for i = 1, #traceback do 
-				local line = traceback[i]
-				if line:match "xpcall" then break end -- stop when we get to xpcall
-				term:at(0, y):print(line)
-				y = y + 1
-			end
-
-			term:at(0, y):fg(11):bg(4):print("-- press space to continue, Q to quit --"):toend()
 		end
+
+		term:at(0, y):fg(11):bg(4):print("-- press space to continue, Q to quit --"):toend()
+
+		-- term = term:clip(0, 0, -24, -22)
+		term.panel:resize(term.width, term.height)
 		
 		ERRORED_OUT = true
 
@@ -375,18 +380,15 @@ local function simulate(term)
 
 	repeat
 		-- rotinplace(screen[1], screen[3], .001)
-		term:clip()
-		term:erase()
-		term:clip(0, 0, 80, 24)
-
+		term:bg(0):fill()
 		xpcall(protected, protection)
-		--protected()
+--		protected()
 	until hasquit
 end
 
 simulate(term)
 
-term:erase()
-term:refresh()
-term:endwin()
+term.root:erase()
+term.root:refresh()
+term.root:endwin()
 
