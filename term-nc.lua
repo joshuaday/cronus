@@ -558,14 +558,55 @@ local function adapter()
 		end
 	end
 
+	local mouse = {
+		x = 0, y = 0,
+		isPressed = false, justPressed = false,
+		isReleased = false, justReleased = false,
+		shift = false, control = false, alt = false,
+		justMoved = false
+	}
+
+	local mevent = ffi.new "MEVENT"
+	local function getmouse()
+		-- called by getch; never used otherwise
+		mouse.justPressed = 0
+		mouse.justReleased = 0
+		mouse.justMoved = 0
+
+		ncurses.getmouse (mevent)
+		mouse.x = mevent.x
+		mouse.y = mevent.y
+
+		mouse.shift = bit.band(mevent.bstate, MOUSE.BUTTON_SHIFT) ~= 0
+		mouse.control = bit.band(mevent.bstate, MOUSE.BUTTON_CTRL) ~= 0
+		
+		if bit.band(mevent.bstate, MOUSE.BUTTON1_PRESSED) ~= 0 then
+			mouse.justPressed = true
+			mouse.isPressed = true
+		elseif bit.band(mevent.bstate, MOUSE.BUTTON1_RELEASED) ~= 0 then
+			if mouse.isPressed then
+				mouse.justReleased = true
+				mouse.isPressed = false
+			end
+		else
+			mouse.justMoved = true
+		end
+
+		return "mouse", mouse
+	end
+
 	local function getch(waitms)
 		timeout(waitms)
 
 		do
 			local ch = ncurses.getch()
+
 			if ch > 31 and ch < 256 then
 				return string.char(ch), ch
 			elseif keys[ch] then
+				if keys[ch] == "mouse" then
+					return getmouse()
+				end
 				return keys[ch], ch
 			elseif ch > 1 then
 				return string.char(ch), ch

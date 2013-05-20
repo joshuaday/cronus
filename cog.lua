@@ -407,7 +407,10 @@ function cog:manipulate(item_idx, command, inventory)
 			self:unequip(item)
 		end
 
-		item:moveto(self.x1, self.y1)
+		local x1, y1 = self.x1, self.y1
+		self:endturn()
+
+		item:moveto(x1, y1)
 		self.dlvl:addcog(item)
 	elseif command == "e" then
 		if item.info.slot and not item.equipped then
@@ -416,7 +419,7 @@ function cog:manipulate(item_idx, command, inventory)
 				self:unequip(olditem)
 			end
 			self:equip(item)
-			self.has_initiative = false
+			self:endturn()
 		else
 			self:say "I can't equip that."
 		end
@@ -467,10 +470,11 @@ function cog:manipulate(item_idx, command, inventory)
 	
 		if used then
 			self.bag[item_idx] = nil
+			self:endturn()
 		end
 	elseif command == "r" then
 		if self:unequip(item) then
-			self.has_initiative = false
+			self:endturn()
 		end
 	end
 end
@@ -542,22 +546,22 @@ function cog:automove(dx, dy)
 	if self.has_initiative then
 		if dx == 0 and dy == 0 then
 			if self:get_best_floor() == "slick" and (self.vx ~= 0 or self.vy ~= 0) then
-				-- return self:automove(self.lastdx or 0, self.lastdy or 0)
+				self:endturn()
+				return
 			end
 
-			-- just yield initiative
-			self.has_initiative = false
-			
 			if self.is_player then
 				Messaging:announce {"You wait.", ttl = 500}
 			end
+
+			self:endturn()
+			return
 		else
 			start_scythe_attack()
 
 			if self:push(dx, dy) then
 				-- took our turn!
 				self:endturn() -- todo : move this elsewhere
-				self.has_initiative = false
 
 				finish_scythe_attack()
 
@@ -567,7 +571,6 @@ function cog:automove(dx, dy)
 				if fought then
 					self.dlvl:refresh() -- todo : remove when consistency is maintained by adding/removing cogs
 					self:endturn() -- todo : move this elsewhere
-					self.has_initiative = false
 
 					return
 				end
@@ -628,6 +631,20 @@ function cog:pickup(item, autoequip)
 end
 
 function cog:endturn()
+	if not self.moved then
+		-- check for ice
+		local own_floor = self:get_best_floor()
+		if own_floor == "slick" then
+			if self.vx ~= 0 or self.vy ~= 0 then
+				-- try to move that way
+				self:push(self.vx, self.vy) -- todo better
+
+				if self.is_player then
+					Messaging:announce {"You slide.", ttl = 500}
+				end
+			end
+		end
+	end
 	if self.bag then
 		local items = { }
 		self.dlvl:overlap(self, function(cog)
@@ -645,11 +662,9 @@ function cog:endturn()
 			end
 		end
 	end
-end
 
-function cog:newpush(dx, dy)
-	-- collect all the cogs that get engaged by this motion
-
+	self.moved = false 
+	self.has_initiative = false
 end
 
 
@@ -671,7 +686,9 @@ function cog:push(dx, dy)
 	if own_floor == "slick" then
 		if self.vx ~= 0 or self.vy ~= 0 then
 			if math.abs(self.vx - dx) + math.abs(self.vy - dy) > 1 then
-				self:say "I'll slip and fall!"
+				if self.is_player then
+					self:say "I'll slip and fall!"
+				end
 				return false
 			end
 		end
@@ -712,6 +729,7 @@ function cog:push(dx, dy)
 		-- ok!
 		for cog, bump in pairs(bumps) do
 			cog:moveto(cog.x1 + bump.dx, cog.y1 + bump.dy)
+			cog.moved = true
 		end
 	else
 		-- in any case, put them all back on the map

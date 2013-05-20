@@ -45,7 +45,7 @@ function Menu:inventory(term, bag, action, player_x)
 	term = panel:clip(2, 1, -4, -2)
 
 	local function callback (action)
-		return self:inventory(term, bag, action)
+		return self:inventory(term, bag, action, player_x)
 	end
 
 	local y, x = 0, 0 

@@ -212,6 +212,7 @@ local function simulate(term)
 
 		if key == "mouse" then
 			-- get mouse event info!
+			you:moveto(1 + code.x, 1 + code.y)
 			
 			return
 		end
@@ -344,6 +345,7 @@ local function simulate(term)
 
 		-- make a new panel
 		local panel = term.root:panel_from_cursor(term):wipe()
+		panel.z = 5
 
 		-- todo : wrap everything from here on in xpcall, too, and if an error comes up while
 		--        drawing the error panel, os.exit() our way out and dump the traceback to
