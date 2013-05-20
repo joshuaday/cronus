@@ -11,7 +11,7 @@ function Menu:dialog(term, prompt, options)
 
 	options = options or ok_cancel
 	
-	term = term:clip(0, 0, 80, 80)
+	term = term:clip(0, 0, 80, 24)
 
 	local minx, miny, maxx, maxy = term:dryrun(false)
 	term:clip(7, 1, maxx + 7, maxy + 5):bg(4):fill()
@@ -37,7 +37,7 @@ local inventory_prompts = {
 	T = "Attach to what?"
 }
 
-function Menu:inventory(term, bag, action)
+function Menu:inventory(term, bag, action, player_x)
 	local panel = term.root:panel_from_cursor(term)
 	panel:fg(0):bg(0):fill()
 
@@ -93,7 +93,7 @@ function Menu:inventory(term, bag, action)
 	local x1, y1, w, h = term.panel:get_printable_bounds()
 	term.panel:resize(w + 4, h + 2)
 
-	term.panel.x1 = math.floor(.75 * (80 - w))
+	term.panel.x1 = math.floor((player_x > 50 and .25 or .75) * (80 - w))
 	term.panel.y1 = math.floor(.125 * (24 - h))
 
 	term.root:flush()

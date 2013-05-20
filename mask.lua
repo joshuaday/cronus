@@ -86,7 +86,8 @@ function Mask.circle(w, h)
 		for x = math.floor(-outer_x), -math.floor(inner_x) do
 			local d2 = y * y + x * x
 			local m = c3p0 * (r2 - d2)
-			if (0 < m and m < 1) then
+			if (.5 < m and m < 1) then
+				m = 1 -- this booleanizes it -- I should really just write a proper discrete circle algo instead of reusing old code
 				output:set(x, y, m)
 				output:set(-x, y, m)
 				output:set(x, -y, m)

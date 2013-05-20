@@ -19,7 +19,8 @@ local function new_cog(width, height)
 	local self = setmetatable({
 		map = Layer.new("int", width, height),
 		down = Layer.new("int", width, height), -- the next cog down in the cog stack for each cell
-		x1 = 1, y1 = 1, priority = 1
+		x1 = 1, y1 = 1, priority = 1,
+		vx = 0, vy = 0
 	}, cog_mt)
 	
 	return self
@@ -474,10 +475,31 @@ function cog:manipulate(item_idx, command, inventory)
 	end
 end
 
-function cog:get_floor()
-	return self.dlvl:topmost(self.x1, self.y1, function(cog, tile)
-		return tile.floor
+local function better_floor(a, b)
+	if a == "solid" or b == "solid" then
+		return "solid"
+	elseif a == "slick" or b == "slick" then
+		return "slick"
+	elseif a == "water" or b == "water" then
+		return "water"
+	else
+		return "none"
+	end
+end
+
+function cog:get_best_floor()
+	local best = "none"
+	
+	self:each(function(t, x, y, idx)
+		if best == "solid" then return end -- break out early when the floor is solid already
+
+		-- todo : check whether t is a type that can function as a foot; otherwise ignore it
+		best = better_floor(best, self.dlvl:topmost(self.x1, self.y1, function(cog, tile)
+			return tile.floor
+		end))
 	end)
+
+	return best
 end
 
 function cog:automove(dx, dy)
@@ -519,7 +541,7 @@ function cog:automove(dx, dy)
 
 	if self.has_initiative then
 		if dx == 0 and dy == 0 then
-			if self:get_floor() == "slick" and (self.vx ~= 0 or self.vy ~= 0) then
+			if self:get_best_floor() == "slick" and (self.vx ~= 0 or self.vy ~= 0) then
 				-- return self:automove(self.lastdx or 0, self.lastdy or 0)
 			end
 
@@ -644,18 +666,35 @@ function cog:push(dx, dy)
 	
 	local x, y = self.x1, self.y1
 
+	-- step one: verify that the initiator of the motion is allowed to attempt this
+	local own_floor = self:get_best_floor()
+	if own_floor == "slick" then
+		if self.vx ~= 0 or self.vy ~= 0 then
+			if math.abs(self.vx - dx) + math.abs(self.vy - dy) > 1 then
+				self:say "I'll slip and fall!"
+				return false
+			end
+		end
+	end
 
-	-- step one: enumerate everything that would be PUSHED by this motion
+	-- step two: enumerate everything that would be PUSHED by this motion
 
 	local dlvl = self.dlvl
 	local valid, bumps = self:remove_pushes(dx, dy)
+	local best_floor_type = "none"
 
 	if valid then
 		-- notice also that all of these cogs have been UNSTAMPED from the map as a side effect of
 		-- enumerate_pushes
 		local blocked = false
 		for cog, bump in pairs(bumps) do
+			best_floor_type = better_floor(best_floor_type, cog:get_best_floor())
 			if not cog:may_take_step(bump.dx, bump.dy) then
+				blocked = true
+			end
+
+			if cog ~= self and (own_floor ~= "solid" and own_floor ~= "water") then
+				-- you can't push a boulder without firm footing
 				blocked = true
 			end
 		end
@@ -683,15 +722,12 @@ function cog:push(dx, dy)
 		end
 	end
 
-
-
 	-- now run through all of these 
 	
-	
 	-- todo : adapt floor_type to work for bigger cogs !
-	--[[ local floor_type = self:get_floor()
+	--[[ local floor_type = self:get_best_floor()
 	
-	if floor_type == "slick" then
+	if best_floor_type == "slick" then
 		if dx ~= self.vx or dy ~= self.vy then
 			-- return false
 		end

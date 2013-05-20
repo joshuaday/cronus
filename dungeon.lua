@@ -22,7 +22,8 @@ function level:refresh()
 	-- (generally once per turn, or more for combat and spawning and the slike)
 	if self.dirty then
 		-- clear the level to void
-		self.transparency:zero()
+		self.seethrough:fill(1)
+		self.waterseethrough:zero()
 		self.blocking:zero()
 		self.top:zero()
 
@@ -207,6 +208,8 @@ end
 
 local function wipe_stamped_cell(level, x, y)
 	-- uncertain here?
+	level.seethrough:set(x, y, 1)
+	level.waterseethrough:set(x, y, 0)
 end
 
 local function cell_stamp(level, cog, tile_idx, x, y)
@@ -229,7 +232,8 @@ local function cell_stamp(level, cog, tile_idx, x, y)
 		end
 	end
 
-	level.transparency:set(x, y, tile.transparency)
+	level.seethrough:set(x, y, math.min(level.seethrough:get(x, y), tile.seethrough))
+	level.waterseethrough:set(x, y, math.max(level.waterseethrough:get(x, y), tile.waterseethrough))
 	level.blocking:set(x, y, tile.blocking)
 end
 
@@ -338,7 +342,13 @@ function level:update_fov()
 			local eye_x, eye_y = eye.map.x1, eye.map.y1
 			eye.fov:recenter(eye_x, eye_y)
 
-			Fov.scan(self.transparency, eye.fov, eye_x, eye_y, eye.fov_mask, 0.0)
+			local eye_aquatic = self.waterseethrough:get(eye_x, eye_y) > 0
+
+			if eye_aquatic then
+				Fov.scan(self.waterseethrough, eye.fov, eye_x, eye_y, eye.fov_mask, 0.0)
+			else
+				Fov.scan(self.seethrough, eye.fov, eye_x, eye_y, eye.fov_mask, 0.0)
+			end
 
 			if eye.team == "player" then
 				self.fov:stamp(eye.fov, bit.bor)
@@ -525,7 +535,8 @@ local function new_level(width, height, dlvl_up)
 		memory = Layer.new("int", width, height), -- just a glyph in memory
 
 		top = Layer.new("int", width, height), -- the top cog in the cog stack for each tile
-		transparency = Layer.new("double", width, height),
+		seethrough = Layer.new("double", width, height),
+		waterseethrough = Layer.new("double", width, height),
 		blocking = Layer.new("int", width, height), -- actually a bitfield
 		fov = Layer.new("int", width, height),
 

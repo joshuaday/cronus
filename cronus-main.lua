@@ -210,6 +210,12 @@ local function simulate(term)
 			return
 		end
 
+		if key == "mouse" then
+			-- get mouse event info!
+			
+			return
+		end
+
 		if key == "Q" then
 			-- Menu:dialog (term, "Quit?")
 			hasquit = true
@@ -249,7 +255,7 @@ local function simulate(term)
 			if key == "i" or key == "e" or key =="r" or key =="d" or key == "a" and you.bag then
 				term:bg(0):fill()
 				dlvl:draw(term) -- clear the screen of messages (for now)
-				local item, command, _, cb = Menu:inventory(term, you.bag, key)
+				local item, command, _, cb = Menu:inventory(term, you.bag, key, you.x1)
 				if command then
 					you:manipulate(item, command, cb) -- cb is a hack
 				end

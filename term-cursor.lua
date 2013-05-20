@@ -6,6 +6,9 @@ local function new_cursor(root, panel, x1, y1, width, height)
 		root = root,
 		panel = panel,
 
+		links = nil, -- one reference per cell, for mouse i/o
+		traces = nil, -- stack traces for debugging
+
 		x1 = x1,
 		y1 = y1,
 		width = width,
@@ -101,6 +104,8 @@ function Cursor:put(ch)
 	else
 		self.adapter.color32(self.attrib.fg_c, self.attrib.bg_c)
 	end]]
+
+	-- local st = debug.traceback()
 
 	local x, y = self.x, self.y
 

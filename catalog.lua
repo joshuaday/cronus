@@ -84,66 +84,65 @@ local raw_tiles = {
 	void = {
 		glyph = "?!", fg = 0, bg = 5, -- black on magenta, ew
 		-- glyph = "#", fg = 1, bg = 7,
-		transparency = 0.0, blocking = 1, floor = "none",
+		seethrough = 0.0, blocking = 1, floor = "none",
 		complaint = "The unforgiving cold of Titan waits beyond."
 	},
 
 	[ [[stairs-up]] ] = {
 		-- I want the stairs to block, but there are generation issues
-		glyph = "<", fg = 0, bg = 3, blocking = 0, transparency = 0.0,
+		glyph = "<", fg = 0, bg = 3, blocking = 0, seethrough = 0.0,
 		complaint = "The stairs back up are blocked."
 	},
 
 	[ [[stairs-down]] ] = {
-		glyph = ">", fg = 11, bg = 5, blocking = 0, transparency = 0.0,
+		glyph = ">", fg = 11, bg = 5, blocking = 0, seethrough = 0.0,
 		interact = "down"
 	},
 
 	water = {
 		glyph = "~", fg = 4, bg = 0, blocking = 0,
-		transparency = 1.0, floor = "water"
+		waterseethrough = 1.0, floor = "water"
 	},
 	chasm = {
 		glyph = "7", fg = 4, bg = 0, blocking = 0,
-		transparency = 1.0, floor = "none"
+		floor = "none"
 	},
 	ice = {
 		glyph = "-", fg = 12, bg = 6, blocking = 0,
-		transparency = 1.0, floor = "slick"
+		floor = "slick"
 	},
 
 	redfloor = {
 		glyph = ".", fg = 0, bg = 1,
-		transparency = 1.0, floor = "solid",
+		seethrough = 1.0, floor = "solid",
 		complaint = "The ground crunches."
 	},
 	brownfloor = {
 		glyph = ".", fg = 1, bg = 3,
-		transparency = 1.0, floor = "solid"
+		floor = "solid"
 	},
 	grayfloor = {
 		glyph = ".", fg = 8, bg = 7,
-		transparency = 1.0, floor = "solid"
+		floor = "solid"
 	},
 
 	redwall = {
 		glyph = "#", fg = 1, bg = 0, blocking = 2,
-		transparency = 0.0, 
+		seethrough = 0, 
 		complaint = "The stone is rough and warm to the touch."
 	},
 	brownwall = {
 		glyph = "#", fg = 3, bg = 0, blocking = 2,
-		transparency = 0.0,
+		seethrough = 0,
 		complaint = "The stone is slick and soapy."
 	},
 	graywall = {
 		glyph = "#", fg = 7, bg = 0, blocking = 2,
-		transparency = 0.0,
+		seethrough = 0,
 		complaint = "The stone is cool and unyielding."
 	},
 	crystal = {
 		glyph = "#", fg = 15, bg = 6, blocking = 2,
-		transparency = 1.0,
 		complaint = "Light refracts gloriously through the crystal's facets."
 	},
 
@@ -152,46 +151,45 @@ local raw_tiles = {
 
 	tree = {
 		glyph = "&", fg = 2, bg = 0,
-		transparency = 0.0, blocking = 1,
+		seethrough = 0.0, blocking = 1,
 		complaint = "The growth feels pulpy and unpleasant."
 	},
 
 	bushes = {
 		glyph = "\"", fg = 2, bg = 0,
-		transparency = 0.0
+		seethrough = 0
 	},
 
 	door = {
 		glyph = "+", fg = 1, bg = 0,
-		transparency = 0.0
+		seethrough = 0
 	},
 
 
 	handle = {
 		glyph = "!", fg = 1, bg = 7, blocking = 2, interact = "push",
-		transparency = 0.0
+		seethrough = 0
 	},
 	boulder = {
-		glyph = "0", fg = 15, blocking = 1, interact = "push",
-		transparency = 1.0
+		glyph = "0", fg = 15, blocking = 1, interact = "push"
 	},
 
 	-- item tiles
 	weapon = {
 		glyph = "(", fg = 11, bg = nil,
-		transparency = 1.0, blocking = 0,
+		blocking = 0,
 	},
 	tank = {
 		glyph = "!", fg = 11, bg = nil,
-		transparency = 1.0, blocking = 0,
+		blocking = 0,
 	},
 	detonator = {
 		glyph = "?", fg = 11, bg = nil,
-		transparency = 1.0, blocking = 0
+		blocking = 0
 	},
 	trinket = {
 		glyph = "*", fg = 11, bg = nil,
-		transparency = 1.0, blocking = 0
+		blocking = 0
 	}
 }
 
@@ -222,7 +220,7 @@ local raw_spawns = {
 	rogue = {
 		name = "you", tile = {
 			glyph = "@", fg = 15,
-			transparency = 1.0, blocking = 1,
+			seethrough = 1.0, blocking = 1,
 		},
 
 		damage = 1, accuracy = 20, attack_pattern = pattern.bump,
@@ -234,7 +232,7 @@ local raw_spawns = {
 	ape = {
 		name = "nine-eyed macauque", tile = {
 			glyph = "m", fg = 10,
-			transparency = 1.0, blocking = 1
+			seethrough = 1.0, blocking = 1
 		},
 		noises = [[eeeee,oo oo oo,SCRAW]],
 		damage = 1, accuracy = 40,
@@ -245,7 +243,7 @@ local raw_spawns = {
 	pangolin = {
 		name = "promethean pangolin", tile = {
 			glyph = "m", fg = 12,
-			transparency = 1.0, blocking = 1
+			seethrough = 1.0, blocking = 1
 		},
 		damage = 2, accuracy = 40,
 		noises = [[roo hrr]],
@@ -256,7 +254,7 @@ local raw_spawns = {
 	spark = {
 		name = "ionian spark", tile = {
 			glyph = "i", fg = 11,
-			transparency = 1.0, blocking = 1
+			seethrough = 1.0, blocking = 1
 		},
 		damage = 1, accuracy = 60,
 		attack_pattern = pattern.scythe,
@@ -268,7 +266,7 @@ local raw_spawns = {
 	eel = {
 		name = "dielectric eel", tile = {
 			glyph = "e", fg = 15,
-			transparency = 1.0, blocking = 1
+			seethrough = 1.0, blocking = 1
 		},
 		damage = 2, accuracy = 80,
 		attack_pattern = pattern.bump,
@@ -279,7 +277,7 @@ local raw_spawns = {
 	squid = {
 		name = "squid", tile = {
 			glyph = "s", fg = 15,
-			transparency = 1.0, blocking = 1
+			seethrough = 1.0, blocking = 1
 		},
 		noises = [[blub]],
 		damage = 1, accuracy = 50, -- grab
@@ -291,7 +289,7 @@ local raw_spawns = {
 	siarnaqean = {
 		name = "siarnaqean pohlsepid", tile = {
 			glyph = "o", fg = 0,
-			transparency = 1.0, blocking = 2
+			seethrough = 1.0, blocking = 2
 		},
 		damage = 6, accuracy = 30,
 		attack_pattern = pattern.bump,
@@ -302,7 +300,7 @@ local raw_spawns = {
 	spider = {
 		name = "spider", tile = {
 			glyph = "S", fg = 0,
-			transparency = 1.0, blocking = 2
+			seethrough = 1.0, blocking = 2
 		},
 		damage = 1, accuracy = 90,
 		attack_pattern = pattern.bump,	
@@ -313,7 +311,7 @@ local raw_spawns = {
 	titan = {
 		name = "bearded titan", tile = {
 			glyph = "T", fg = 11, 
-			transparency = 1.0, blocking = 2
+			seethrough = 1.0, blocking = 2
 		},
 
 		noises = [[groan]],
@@ -327,7 +325,7 @@ local raw_spawns = {
 	olympian = {
 		name = "olympian", tile = {
 			glyph = "O", fg = 11, 
-			transparency = 1.0, blocking = 2
+			seethrough = 1.0, blocking = 2
 		},
 
 		noises = [[groan]],
@@ -341,7 +339,7 @@ local raw_spawns = {
 	horror = {
 		name = "ionian horror", tile = {
 			glyph = "I", fg = 1,
-			transparency = 1.0, blocking = 2
+			seethrough = 1.0, blocking = 2
 		},
 		
 		damage = 6, accuracy = 70,
@@ -353,7 +351,7 @@ local raw_spawns = {
 	prelate = {
 		name = "mimantean prelate", tile = {
 			glyph = "M", fg = 1,
-			transparency = 1.0, blocking = 2
+			seethrough = 1.0, blocking = 2
 		},
 		
 		damage = 3, accuracy = 100,
@@ -366,7 +364,7 @@ local raw_spawns = {
 	borer = {
 		name = "callistonian borer", tile = {
 			glyph = "C", fg = 7,
-			transparency = 0.0, blocking = 2
+			seethrough = 0.0, blocking = 2
 		},
 
 		damage = 4, accuracy = 100,
@@ -378,7 +376,7 @@ local raw_spawns = {
 	priest = {
 		name = "high priest of Huygens", tile = {
 			glyph = "p", fg = 15,
-			transparency = 1.0, blocking = 1
+			seethrough = 1.0, blocking = 1
 		},
 
 		damage = 4, accuracy = 100,
@@ -468,6 +466,8 @@ local function index_tiles()
 		tiles[tag] = tile
 
 		tile.blocking = tile.blocking or 0
+		tile.seethrough = tile.seethrough or 1
+		tile.waterseethrough = tile.waterseethrough or 0
 
 		next_idx = 1 + next_idx
 	end
@@ -488,6 +488,8 @@ local function index_spawns(raw_spawns)
 			tile.idx = 1 + #tiles
 			tile.tag = tag .. ".tile"
 			tile.blocking = tile.blocking or 0
+			tile.seethrough = tile.seethrough or 1
+			tile.waterseethrough = tile.waterseethrough or 0
 
 			tiles[tile] = tile
 			tiles[tile.idx] = tile
