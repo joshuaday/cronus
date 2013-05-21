@@ -637,10 +637,15 @@ function cog:endturn()
 		if own_floor == "slick" then
 			if self.vx ~= 0 or self.vy ~= 0 then
 				-- try to move that way
-				self:push(self.vx, self.vy) -- todo better
-
-				if self.is_player then
-					Messaging:announce {"You slide.", ttl = 500}
+				if not self:push(self.vx, self.vy) then -- todo better (e.g., no pushing boulders this way)
+					self.vx, self.vy = 0, 0
+					if self.is_player then
+						Messaging:announce {"You stop.", ttl = 500}
+					end
+				else
+					if self.is_player then
+						Messaging:announce {"You slide.", ttl = 500}
+					end
 				end
 			end
 		else
