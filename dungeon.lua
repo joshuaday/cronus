@@ -746,6 +746,7 @@ local function new_level(width, height, dlvl_up)
 
 	local function make_a_rock_temp(x, y, linkto)
 		local boulder = Cog.new(1, 1)
+		boulder.no_lift = true -- todo: add to the catalog somehow?
 		boulder:set(1, 1, "boulder")
 		self:addcog(boulder)
 		boulder:moveto(x, y)

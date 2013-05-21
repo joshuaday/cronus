@@ -212,7 +212,33 @@ local function simulate(term)
 
 		if key == "mouse" then
 			-- get mouse event info!
-			you:moveto(1 + code.x, 1 + code.y)
+			if DEBUG_MODE and code.left.justPressed and code.ctrl then
+				-- teleport on ctrl+click
+				you:moveto(1 + code.x, 1 + code.y)
+				return
+			end
+			if code.left.justPressed then
+				-- info box about the cell
+				local whohere = ""
+				for cog in you.dlvl:cogs_at(1 + code.x, 1 + code.y) do
+					local name
+					if cog.info and cog.info.name then
+						name = cog.info.name
+					else
+						local tile = cog:gettile(1 + code.x, 1 + code.y)
+						if tile.tag then
+							name = tile.tag
+						end
+					end
+
+					if whohere ~= "" then
+						whohere = whohere .. " on " .. name
+					else
+						whohere = name
+					end
+				end
+				Messaging:announce {whohere, x = code.x - 2, y = code.y - 1, ttl = 1250, fg = 12, bg = 0}
+			end
 			
 			return
 		end

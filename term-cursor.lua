@@ -15,7 +15,7 @@ local function new_cursor(root, panel, x1, y1, width, height)
 		height = height,
 		
 		x = 0, y = 0,
-		fg_c = 7, bg_c = 0, link_c = nil
+		fg_c = 7, bg_c = 0, link_c = 0
 	}, Cursor_mt)
 
 	return self
@@ -39,7 +39,7 @@ function Cursor:clip(x, y, w, h, mode)
 	end
 
 	local child = new_cursor(self.root, self.panel, x, y, w, h)
-	child.fg_c, child.bg_c, child.link_c = self.fg_c, self.bg_c, self.link
+	child.fg_c, child.bg_c, child.link_c = self.fg_c, self.bg_c, self.link_c
 
 	return child
 end
@@ -94,10 +94,10 @@ function Cursor:bg(c, g, b)
 end
 
 function Cursor:link(v)
-	self.link_c = v
+	self.link_c = v or 0
 	return self
 end
-	
+
 function Cursor:put(ch)
 	--[[if self.fg_c_4 then
 		self.adapter.color4(self.attrib.fg_c, self.attrib.bg_c)
@@ -112,9 +112,9 @@ function Cursor:put(ch)
 	if x >= 0 and y >= 0 and x < self.width and y < self.height then
 		local idx = self.panel:index(x + self.x1, y + self.y1)
 		if type(ch) == "string" then
-			self.panel:putch(idx, self.fg_c, self.bg_c, string.byte(ch))
+			self.panel:putch(idx, self.fg_c, self.bg_c, string.byte(ch), self.link_c)
 		elseif type(ch) == "number" then
-			self.panel:putch(idx, self.fg_c, self.bg_c, ch)
+			self.panel:putch(idx, self.fg_c, self.bg_c, ch, self.link_c)
 		end
 
 		--[[self.run.x1 = math.min(self.run.x1, x)
@@ -170,12 +170,12 @@ end
 function Cursor:fill(glyph)
 	-- todo: clip to the panel too
 
-	local fg, bg = self.fg_c, self.bg_c
+	local fg, bg, link = self.fg_c, self.bg_c, self.link_c
 	glyph = glyph or 32
 	for y = self.y1, self.y1 + self.height - 1 do
 		local idx = self.panel:index(self.x1, y + self.y1)
 		for x = self.x1, self.x1 + self.width - 1 do
-			self.panel:putch(idx, fg, bg, glyph)
+			self.panel:putch(idx, fg, bg, glyph, link)
 			idx = idx + 1
 		end
 	end
@@ -183,7 +183,7 @@ function Cursor:fill(glyph)
 end
 
 function Cursor:wipe()
-	return self:fill(0)
+	return self:link():fill(0)
 end
 
 
@@ -191,7 +191,13 @@ end
 -- uncomfortable with these, but eh --
 
 function Cursor:getch(waitms)
-	return self.root:getch(waitms)
+	local key, code = self.root:getch(waitms)
+	if key == "mouse" then
+		local x, y = self.panel:coords_from_screen_coords(code.x, code.y)
+		local _, _, _, link = self.panel:getch(self.panel:index(x, y))
+		code.link = link
+	end
+	return key, code
 end
 
 function Cursor:nbgetch()

@@ -643,6 +643,8 @@ function cog:endturn()
 					Messaging:announce {"You slide.", ttl = 500}
 				end
 			end
+		else
+			self.vx, self.vy = 0, 0
 		end
 	end
 	if self.bag then
@@ -705,14 +707,31 @@ function cog:push(dx, dy)
 		-- enumerate_pushes
 		local blocked = false
 		for cog, bump in pairs(bumps) do
-			best_floor_type = better_floor(best_floor_type, cog:get_best_floor())
+			local source_floor_type = cog:get_best_floor()
+
+			best_floor_type = better_floor(best_floor_type, source_floor_type)
 			if not cog:may_take_step(bump.dx, bump.dy) then
 				blocked = true
 			end
 
-			if cog ~= self and (own_floor ~= "solid" and own_floor ~= "water") then
+			--[=[if cog ~= self and (own_floor ~= "solid" and own_floor ~= "water") then
+				-- I thought it might be interesting to be restricted in this way; it isn't.
 				-- you can't push a boulder without firm footing
 				blocked = true
+			end]=]
+
+			if cog.no_lift and source_floor_type == "water" then
+				-- you can't push a boulder up out of water
+				dlvl:restamp(cog, true)
+				cog:moveto(cog.x1 + bump.dx, cog.y1 + bump.dy)
+				local dest_floor_type = cog:get_best_floor()
+				cog:moveto(cog.x1 - bump.dx, cog.y1 - bump.dy)
+				dlvl:restamp(cog, false)
+				
+				if dest_floor_type ~= "water" then
+					-- todo: add explanatory messages?
+					blocked = true
+				end
 			end
 		end
 
@@ -730,6 +749,8 @@ function cog:push(dx, dy)
 		for cog, bump in pairs(bumps) do
 			cog:moveto(cog.x1 + bump.dx, cog.y1 + bump.dy)
 			cog.moved = true
+
+			cog.vx, cog.vy = bump.dx, bump.dy
 		end
 	else
 		-- in any case, put them all back on the map
@@ -769,7 +790,6 @@ function cog:push(dx, dy)
 		return false
 	end]]
 
-	self.vx, self.vy = dx, dy -- mark motion for, e.g., slipping
 	return true
 end
 

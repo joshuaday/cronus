@@ -448,7 +448,7 @@ do
 		MOUSE.REPORT_MOUSE_POSITION	= NCURSES_MOUSE_MASK(6, 8)
 	end
 
-	MOUSE.ALL_MOUSE_EVENTS = MOUSE.REPORT_MOUSE_POSITION - 1
+	MOUSE.ALL_MOUSE_EVENTS = (MOUSE.REPORT_MOUSE_POSITION - 1)
 
 	-- macros to extract single event-bits from masks
 	function MOUSE.BUTTON_RELEASE(e, x) return bit.band((e), NCURSES_MOUSE_MASK(x, 1)) end
@@ -560,38 +560,49 @@ local function adapter()
 
 	local mouse = {
 		x = 0, y = 0,
-		isPressed = false, justPressed = false,
-		isReleased = false, justReleased = false,
-		shift = false, control = false, alt = false,
+		shift = false, ctrl = false, alt = false,
+		left = {isPressed = false, justPressed = false, isReleased = false, justReleased = false},
+		middle = {isPressed = false, justPressed = false, isReleased = false, justReleased = false},
+		third = {isPressed = false, justPressed = false, isReleased = false, justReleased = false},
+		fourth = {isPressed = false, justPressed = false, isReleased = false, justReleased = false},
 		justMoved = false
 	}
 
 	local mevent = ffi.new "MEVENT"
 	local function getmouse()
 		-- called by getch; never used otherwise
-		mouse.justPressed = 0
-		mouse.justReleased = 0
-		mouse.justMoved = 0
 
 		ncurses.getmouse (mevent)
+
+		mouse.justMoved = (mouse.x ~= mevent.x or mouse.y ~= mevent.y)
 		mouse.x = mevent.x
 		mouse.y = mevent.y
 
 		mouse.shift = bit.band(mevent.bstate, MOUSE.BUTTON_SHIFT) ~= 0
-		mouse.control = bit.band(mevent.bstate, MOUSE.BUTTON_CTRL) ~= 0
+		mouse.ctrl = bit.band(mevent.bstate, MOUSE.BUTTON_CTRL) ~= 0
+		mouse.alt = bit.band(mevent.bstate, MOUSE.BUTTON_ALT) ~= 0
 		
-		if bit.band(mevent.bstate, MOUSE.BUTTON1_PRESSED) ~= 0 then
-			mouse.justPressed = true
-			mouse.isPressed = true
-		elseif bit.band(mevent.bstate, MOUSE.BUTTON1_RELEASED) ~= 0 then
-			if mouse.isPressed then
-				mouse.justReleased = true
-				mouse.isPressed = false
+		function checkButton(button, pressed, released)
+			button.justPressed = false
+			button.justReleased = false
+
+			if bit.band(mevent.bstate, pressed) ~= 0 then
+				button.justPressed = true
+				button.isPressed = true
+			elseif bit.band(mevent.bstate, released) ~= 0 then
+				if button.isPressed then
+					button.justReleased = true
+					button.isPressed = false
+				end
 			end
-		else
-			mouse.justMoved = true
 		end
 
+		checkButton(mouse.left, MOUSE.BUTTON1_PRESSED, MOUSE.BUTTON1_RELEASED)
+		checkButton(mouse.middle, MOUSE.BUTTON2_PRESSED, MOUSE.BUTTON2_RELEASED)
+		checkButton(mouse.third, MOUSE.BUTTON3_PRESSED, MOUSE.BUTTON3_RELEASED)
+		checkButton(mouse.fourth, MOUSE.BUTTON4_PRESSED, MOUSE.BUTTON4_RELEASED)
+
+		-- return "mouse: " .. mevent.bstate, 1
 		return "mouse", mouse
 	end
 

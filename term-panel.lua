@@ -11,7 +11,7 @@ ffi.cdef [[
 	typedef unsigned char panel_color;
 
 	struct panel_cell {
-		int glyph;
+		int glyph, link;
 		panel_color fg, bg;
 		unsigned char mask;
 	};
@@ -49,10 +49,11 @@ function Panel:resize(width, height, aspect)
 	end
 end
 
-function Panel:putch(idx, fg, bg, glyph)
+function Panel:putch(idx, fg, bg, glyph, link)
 	self.cells[idx].fg = fg
 	self.cells[idx].bg = bg
 	self.cells[idx].glyph = glyph
+	self.cells[idx].link = link
 	-- panel_cell[idx].mask = mask
 end
 
@@ -60,7 +61,16 @@ function Panel:getch(idx)
 	return 
 		self.cells[idx].fg,
 		self.cells[idx].bg,
-		self.cells[idx].glyph
+		self.cells[idx].glyph,
+		self.cells[idx].link
+end
+
+function Panel:coords_from_screen_coords(x, y)
+	if self.parent then
+		return self.parent:coords_from_screen_coords(x - self.x1, y - self.y1)
+	else
+		return x - self.x1, y - self.y1
+	end
 end
 
 

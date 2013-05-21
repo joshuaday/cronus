@@ -97,12 +97,18 @@ function Menu:inventory(term, bag, action, player_x)
 	term.panel.y1 = math.floor(.125 * (24 - h))
 
 	term.root:flush()
-
 	
 	if action ~= "i" then
 		repeat
-			local key = term.root:getch()
+			local key, code = term:getch()
 			local idx = 1 + string.byte(key) - string.byte('a')
+
+			if key == "mouse" then
+				term:at(0, 0):print(tostring(code.link).. "     ")
+				if code.left.justPressed then
+					idx = code.link
+				end
+			end
 			
 			if idx >= 1 and idx <= bag.slots and bag[idx] ~= nil then
 				return idx, action, bag[idx], callback
