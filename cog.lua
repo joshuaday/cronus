@@ -559,7 +559,8 @@ function cog:automove(dx, dy)
 		else
 			start_scythe_attack()
 
-			if self:push(dx, dy) then
+			local ok, msg = self:push(dx, dy)
+			if ok then
 				-- took our turn!
 				self:endturn() -- todo : move this elsewhere
 
@@ -581,7 +582,7 @@ function cog:automove(dx, dy)
 						return
 					end
 					-- find a message
-					local complaint = self.dlvl:topmost(self.x1 + dx, self.y1 + dy, function(cog, tile)
+					local complaint = msg or self.dlvl:topmost(self.x1 + dx, self.y1 + dy, function(cog, tile)
 						return tile.complaint
 					end) or "The gap is too narrow."
 
@@ -693,10 +694,7 @@ function cog:push(dx, dy)
 	if own_floor == "slick" then
 		if self.vx ~= 0 or self.vy ~= 0 then
 			if math.abs(self.vx - dx) + math.abs(self.vy - dy) > 1 then
-				if self.is_player then
-					self:say "I'll slip and fall!"
-				end
-				return false
+				return false, "I'll slip and fall!"
 			end
 		end
 	end
