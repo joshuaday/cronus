@@ -122,6 +122,7 @@ tell_story {
 
 local dlvl = Dungeon.new_level(80, 24)
 local you = dlvl:spawn "rogue"
+local mousemessage
 you:moveto(dlvl.entry.x, dlvl.entry.y)
 you.team = "player"
 
@@ -151,6 +152,7 @@ local function you_lose()
 	end
 	os.exit(0, finally) 
 end
+
 
 local function simulate(term)
 	local command = nil
@@ -191,25 +193,6 @@ local function simulate(term)
 		end
 		-- playerturn(player, key)
 
-		if key then
-			auto.time, auto.dir = nil, nil
-			Messaging:input()
-		end
-
-		if auto.time and auto.time <= 0 then
-			autorun()
-		end
-
-		if DEBUG_MODE and key == "f8" then
-			error("Testing the error handling.")
-			return
-		end
-
-		if DEBUG_MODE and key == "f7" then
-			dlvl.dirty = true
-			return
-		end
-
 		if key == "mouse" then
 			-- get mouse event info!
 			if DEBUG_MODE and code.left.justPressed and code.ctrl then
@@ -218,6 +201,8 @@ local function simulate(term)
 				return
 			end
 			if code.left.justPressed then
+				Messaging:forget (mousemessage)
+
 				-- info box about the cell
 				local whohere = ""
 				for cog in you.dlvl:cogs_at(1 + code.x, 1 + code.y) do
@@ -237,9 +222,32 @@ local function simulate(term)
 						whohere = name
 					end
 				end
-				Messaging:announce {whohere, x = code.x - 2, y = code.y - 1, ttl = 1250, fg = 12, bg = 0}
+				mousemessage = {whohere, x = code.x - 2, y = code.y - 1, fg = 12, bg = 0}
+				Messaging:announce (mousemessage)
+			end
+			if code.left.justReleased then
+				Messaging:forget (mousemessage)
 			end
 			
+			return
+		end
+
+		if key then
+			auto.time, auto.dir = nil, nil
+			Messaging:input()
+		end
+
+		if auto.time and auto.time <= 0 then
+			autorun()
+		end
+
+		if DEBUG_MODE and key == "f8" then
+			error("Testing the error handling.")
+			return
+		end
+
+		if DEBUG_MODE and key == "f7" then
+			dlvl.dirty = true
 			return
 		end
 
@@ -396,7 +404,7 @@ local function simulate(term)
 			y = y + 1
 		end
 
-		term:at(0, y):fg(11):bg(4):print("-- press space to continue, Q to quit --"):toend()
+		term:at(0, y):fg(11):bg(4):link(1):print("-- press space to continue, Q to quit --"):toend():link(0)
 
 		-- term = term:clip(0, 0, -24, -22)
 		local x1, y1, w, h = term.panel:get_printable_bounds()
@@ -410,7 +418,8 @@ local function simulate(term)
 		ERRORED_OUT = true
 
 		repeat
-			local ch = term:getch()
+			local ch, code = term:getch()
+			if ch == "mouse" and code.link == 1 then ch = " " end
 			if ch == "Q" then os.exit(1) end
 		until ch == " "
 	end

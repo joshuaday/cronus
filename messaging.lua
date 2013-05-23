@@ -9,11 +9,21 @@ function Messaging:announce(msg)
 
 	log[1 + #log] = msg
 
-	msg.ttl = type(msg.ttl) == "number" and msg.ttl or 2000
 	msg.x = msg.x or 1
 	msg.y = msg.y or 1
 	msg.fg = msg.fg or 15
 	msg.bg = msg.bg or 0
+end
+
+function Messaging:forget(msg)
+	local i = 1
+	while i <= #log do
+		if log[i] == msg then
+			table.remove(log, i)
+			i = i - 1
+		end
+		i = i + 1
+	end
 end
 
 function Messaging:time_spent(ms)
@@ -26,13 +36,15 @@ function Messaging:time_spent(ms)
 			-- well have caused a new message to be generated, which will be cleared (accidentally!)
 			-- by this call
 
-			log[i].ttl = log[i].ttl - ms
-			if log[i].ttl <= 0 then
-				if log[i].cb then
-					log[i]:cb()
+			if type(log[i].ttl) == "number" then
+				log[i].ttl = log[i].ttl - ms
+				if log[i].ttl <= 0 then
+					if log[i].cb then
+						log[i]:cb()
+					end
+					table.remove(log, i)
+					i = i - 1
 				end
-				table.remove(log, i)
-				i = i - 1
 			end
 		end
 		i = i + 1
@@ -63,7 +75,9 @@ function Messaging:draw(term)
 		until ok or y > h
 
 		msg.drawn = true -- mark it so we know to start counting time
-		ttl = math.min(ttl, msg.ttl)
+		if type(msg.ttl) == "number" then
+			ttl = math.min(ttl, msg.ttl)
+		end
 	end
 	term:mask(false)
 

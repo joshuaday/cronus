@@ -50,12 +50,10 @@ function level:refresh()
 end
 
 function level:update()
-	-- self.me.has_initiative = false
-
 	-- handle initiative!
 	
 	if self.going and self.going.dlvl == self and self.going.has_initiative == true then
-		-- we already have an active mob, so just wait for it
+		-- we already have an active mob (the player), so just wait for it
 		return
 	else
 		self.going = nil
@@ -71,29 +69,42 @@ function level:update()
 		end
 		table.remove(self.turnorder, 1)
 
-		if mob.dlvl == self and mob.active then
-			-- if the mob is active and is still on this level, it gets its turn now
+		if mob.dlvl == self then
+			if mob.active then
+				-- if the mob is active and is still on this level, it gets its turn now
 
-			mob.has_initiative = true
-			self.going = mob
+				mob.has_initiative = true
+				self.going = mob
 
-			table.insert(self.turnorder, mob)
+				table.insert(self.turnorder, mob)
 
-			if mob.is_player then
-				return
-			else
-				-- automatically play the mob!
-				mob:automove(math.random(-1, 1), math.random(-1, 1))
-				if mob.info.noises and math.random(1,40) == 1 then
-					mob:say(mob.info.noises[random.index(mob.info.noises)])
+				if mob.is_player then
+					return
+				else
+					-- automatically play the mob!
+					mob:automove(math.random(-1, 1), math.random(-1, 1))
+					if mob.info.noises and math.random(1,40) == 1 then
+						mob:say(mob.info.noises[random.index(mob.info.noises)])
+					end
+
+					mob.has_initiative = false
+					self.going = nil
 				end
-
-				mob.has_initiative = false
-				self.going = nil
+			else
+				-- maybe it's sliding on ice or something?
+				mob.turn_registered = false
+				mob:endturn()
 			end
 
 			visited[mob] = true
 		end
+	end
+end
+
+function level:activate(mob)
+	if mob.turn_registered ~= self then
+		mob.turn_registered = self -- would be 'true', but we want to verify that it's registered for _this_ level
+		self.turnorder[1 + #self.turnorder] = mob 
 	end
 end
 
@@ -415,8 +426,7 @@ function level:addcog(cog)
 		end
 
 		table.insert(self.cogs, ins + 1, cog)
-		-- self.cogs[1 + #self.cogs] = cog
-		self.turnorder[1 + #self.turnorder] = cog -- give it a turn (the dispatcher will ignore it if it can't take turns)
+		self:activate(cog) -- give it a turn (the dispatcher will ignore it if it can't take turns)
 		cog.dlvl = self
 	end
 end

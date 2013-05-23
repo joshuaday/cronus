@@ -45,7 +45,6 @@ local function new_item_cog(spawn_name)
 	end
 
 	return self
-	
 end
 
 function cog:each(fn)
@@ -652,6 +651,14 @@ function cog:endturn()
 		else
 			self.vx, self.vy = 0, 0
 		end
+	else
+		if (self.vx ~= 0 or self.vy ~= 0) and not self.active then
+			-- check whether it's self-propelled, and keep it registered if so
+			local own_floor = self:get_best_floor()
+			if own_floor == "slick" then
+				self.dlvl:activate(self)
+			end
+		end
 	end
 	if self.bag then
 		local items = { }
@@ -708,13 +715,16 @@ function cog:push(dx, dy)
 	if valid then
 		-- notice also that all of these cogs have been UNSTAMPED from the map as a side effect of
 		-- enumerate_pushes
-		local blocked = false
+		local blocked, self_blocked = false, false
 		for cog, bump in pairs(bumps) do
 			local source_floor_type = cog:get_best_floor()
 
 			best_floor_type = better_floor(best_floor_type, source_floor_type)
 			if not cog:may_take_step(bump.dx, bump.dy) then
 				blocked = true
+				if self == cog then
+					self_blocked = true
+				end
 			end
 
 			--[=[if cog ~= self and (own_floor ~= "solid" and own_floor ~= "water") then
@@ -743,9 +753,12 @@ function cog:push(dx, dy)
 			dlvl:restamp(cog, true)
 		end
 
+		if self_blocked then
+			return false --, ""
+		end
 		if blocked then
 			-- it won't budge!
-			return false
+			return false, "It just won't budge!"
 		end
 
 		-- ok!
@@ -754,6 +767,7 @@ function cog:push(dx, dy)
 			cog.moved = true
 
 			cog.vx, cog.vy = bump.dx, bump.dy
+			cog.dlvl:activate(cog)
 		end
 	else
 		-- in any case, put them all back on the map
@@ -762,6 +776,7 @@ function cog:push(dx, dy)
 				dlvl:restamp(cog, true)
 			end
 		end
+		return false, "It just won't budge!"
 	end
 
 	-- now run through all of these 

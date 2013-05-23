@@ -514,8 +514,16 @@ local function adapter()
 
 		local function startmouse()
 			if attr.mouse_support then
-				ncurses.mousemask(MOUSE.ALL_MOUSE_EVENTS, nil)
+
+
+				local all_buttons = 0
+				all_buttons = bit.bor(all_buttons, bit.bor(MOUSE.BUTTON1_RELEASED, MOUSE.BUTTON1_PRESSED))
+				all_buttons = bit.bor(all_buttons, bit.bor(MOUSE.BUTTON2_RELEASED, MOUSE.BUTTON2_PRESSED))
+				all_buttons = bit.bor(all_buttons, bit.bor(MOUSE.BUTTON3_RELEASED, MOUSE.BUTTON3_PRESSED))
+	
+				ncurses.mousemask(all_buttons, nil)
 				ncurses.mouseinterval(0) -- no click processing
+
 				-- getmouse( );
 				--[[extern int     getmouse (MEVENT *);
 				extern int     ungetmouse (MEVENT *);
@@ -561,10 +569,10 @@ local function adapter()
 	local mouse = {
 		x = 0, y = 0,
 		shift = false, ctrl = false, alt = false,
-		left = {isPressed = false, justPressed = false, isReleased = false, justReleased = false},
-		middle = {isPressed = false, justPressed = false, isReleased = false, justReleased = false},
-		third = {isPressed = false, justPressed = false, isReleased = false, justReleased = false},
-		fourth = {isPressed = false, justPressed = false, isReleased = false, justReleased = false},
+		left = {isPressed = false, justPressed = false, justReleased = false},
+		middle = {isPressed = false, justPressed = false, justReleased = false},
+		right = {isPressed = false, justPressed = false, justReleased = false},
+		fourth = {isPressed = false, justPressed = false, justReleased = false},
 		justMoved = false
 	}
 
@@ -594,13 +602,17 @@ local function adapter()
 					button.justReleased = true
 					button.isPressed = false
 				end
+			--else -- debugging hints:
+				--for k, v in pairs(MOUSE) do
+					--if v == mevent.bstate then error(k) end
+				--end
 			end
 		end
 
-		checkButton(mouse.left, MOUSE.BUTTON1_PRESSED, MOUSE.BUTTON1_RELEASED)
-		checkButton(mouse.middle, MOUSE.BUTTON2_PRESSED, MOUSE.BUTTON2_RELEASED)
-		checkButton(mouse.third, MOUSE.BUTTON3_PRESSED, MOUSE.BUTTON3_RELEASED)
-		checkButton(mouse.fourth, MOUSE.BUTTON4_PRESSED, MOUSE.BUTTON4_RELEASED)
+		checkButton(mouse.left, MOUSE.BUTTON1_PRESSED, bit.bor(MOUSE.BUTTON1_RELEASED, MOUSE.REPORT_MOUSE_POSITION))
+		checkButton(mouse.middle, MOUSE.BUTTON2_PRESSED, bit.bor(MOUSE.BUTTON2_RELEASED, MOUSE.REPORT_MOUSE_POSITION))
+		checkButton(mouse.right, MOUSE.BUTTON3_PRESSED, bit.bor(MOUSE.BUTTON3_RELEASED, MOUSE.REPORT_MOUSE_POSITION))
+		checkButton(mouse.fourth, MOUSE.BUTTON4_PRESSED, bit.bor(MOUSE.BUTTON4_RELEASED, MOUSE.REPORT_MOUSE_POSITION))
 
 		-- return "mouse: " .. mevent.bstate, 1
 		return "mouse", mouse

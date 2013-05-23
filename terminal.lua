@@ -61,8 +61,8 @@ function Terminal:refresh()
 	for i = 1, #panels do
 		local panel = panels[i]
 		local x1, y1 = panel._x1, panel._y1
-		for y = 0, panel.height do
-			for x = 0, panel.width do
+		for y = 0, panel.height - 1 do
+			for x = 0, panel.width - 1 do
 				local idx = panel:index(x, y)
 				local fg, bg, glyph = panel:getch(idx)
 

@@ -13,7 +13,6 @@ ffi.cdef [[
 	struct panel_cell {
 		int glyph, link;
 		panel_color fg, bg;
-		unsigned char mask;
 	};
 ]]
 
@@ -43,6 +42,11 @@ function Panel:resize(width, height, aspect)
 				end
 			end
 		end
+	
+		cells[width * height].fg = 0
+		cells[width * height].bg = 0
+		cells[width * height].glyph = 0
+		cells[width * height].link = 0
 
 		self.width, self.height, self.cells = width, height, cells
 		self.aspect = aspect
@@ -54,7 +58,6 @@ function Panel:putch(idx, fg, bg, glyph, link)
 	self.cells[idx].bg = bg
 	self.cells[idx].glyph = glyph
 	self.cells[idx].link = link
-	-- panel_cell[idx].mask = mask
 end
 
 function Panel:getch(idx)
