@@ -287,12 +287,12 @@ local function simulate(term)
 					end
 				end
 			end
-			if key == "i" or key == "e" or key =="r" or key =="d" or key == "a" and you.bag then
+			if you.bag and (key == "i" or key == "e" or key =="r" or key =="d" or key == "a") then
 				term:bg(0):fill()
 				dlvl:draw(term) -- clear the screen of messages (for now)
 				local item, command, _, cb = Menu:inventory(term, you.bag, key, you.x1)
 				if command then
-					you:manipulate(item, command, cb) -- cb is a hack
+					you:manipulate(item, command, cb) -- todo cb is a hack
 				end
 			end
 			if key == "t" then
@@ -376,52 +376,70 @@ local function simulate(term)
 	local function protection(msg)
 		local traceback = string.split(debug.traceback(msg, 2), "\n")
 
+		local function innerprotection(msg)
+			local traceback2
+			local function fail_report()
+				io.stderr:write("\n===========\nError in gameplay:\n")
+				for i = 1, #traceback do
+					io.stderr:write(traceback[i], "\n")
+				end
+				io.stderr:write("\n===========\nError while presenting that error:\n")
+				for i = 1, #traceback2 do
+					io.stderr:write(traceback2[i], "\n")
+				end
+			end
+			traceback2 = string.split(debug.traceback(msg, 2), "\n")
 
-		-- make a new panel
-		local panel = term.root:panel_from_cursor(term):wipe()
-		panel.z = 5
-
-		-- todo : wrap everything from here on in xpcall, too, and if an error comes up while
-		--        drawing the error panel, os.exit() our way out and dump the traceback to
-		--        stderr
-
-		-- fill the whole panel with a gray background
-		panel:fg(0):bg(7):fill()
-
-		-- clip the working space to guarantee a border (on the left)
-		local term = panel:clip(2, 1, -4, -2)
-
-		-- render the dialog content
-		local y = 0
-		term:bg(4):fg(11):at(0, y):print("There has been an error, but you can probably keep playing."):toend()
-		term:bg(7):fg(0)
-		y = y + 1
-		
-		for i = 1, #traceback do 
-			local line = traceback[i]
-			if line:match "xpcall" then break end -- stop when we get to xpcall
-			term:at(0, y):print(line)
-			y = y + 1
+			os.exit(1, fail_report)
 		end
+		local function innerprotected()
+			-- make a new panel
+			local panel = term.root:panel_from_cursor(term):wipe()
+			panel.z = 35
 
-		term:at(0, y):fg(11):bg(4):link(1):print("-- press space to continue, Q to quit --"):toend():link(0)
+			-- todo : wrap everything from here on in xpcall, too, and if an error comes up while
+			--        drawing the error panel, os.exit() our way out and dump the traceback to
+			--        stderr
 
-		-- term = term:clip(0, 0, -24, -22)
-		local x1, y1, w, h = term.panel:get_printable_bounds()
-		term.panel:resize(w + 4, h + 2)
+			-- fill the whole panel with a gray background
+			panel:fg(0):bg(7):fill()
 
-		panel.width, panel.height = w + 4, h + 2 -- hack hack hack -- todo : fix the connection between cursor and panel !!!
-		panel:clip(-2, 0, 0, 0):fg(0):bg(7):fill()
-		panel.panel.x1 = math.floor(.5 * (80 - w))
-		panel.panel.y1 = math.floor(.25 * (24 - h))
-		
-		ERRORED_OUT = true
+			-- clip the working space to guarantee a border (on the left)
+			local term = panel:clip(2, 1, -4, -2)
 
-		repeat
-			local ch, code = term:getch()
-			if ch == "mouse" and code.link == 1 then ch = " " end
-			if ch == "Q" then os.exit(1) end
-		until ch == " "
+			-- render the dialog content
+			local y = 0
+			term:bg(4):fg(11):at(0, y):print("There has been an error, but you can probably keep playing."):toend()
+			term:bg(7):fg(0)
+			y = y + 1
+			
+			for i = 1, #traceback do 
+				local line = traceback[i]
+				if line:match "xpcall" then break end -- stop when we get to xpcall
+				term:at(0, y):print(line)
+				y = y + 1
+			end
+
+			term:at(0, y):fg(11):bg(4):link(1):print("-- press space to continue, Q to quit --"):toend():link(0)
+
+			-- term = term:clip(0, 0, -24, -22)
+			local x1, y1, w, h = term.panel:get_printable_bounds()
+			term.panel:resize(w + 4, h + 2)
+
+			panel.width, panel.height = w + 4, h + 2 -- hack hack hack -- todo : fix the connection between cursor and panel !!!
+			panel:clip(-2, 0, 0, 0):fg(0):bg(7):fill()
+			panel.panel.x1 = math.floor(.5 * (80 - w))
+			panel.panel.y1 = math.floor(.25 * (24 - h))
+			
+			ERRORED_OUT = true
+
+			repeat
+				local ch, code = term:getch()
+				if ch == "mouse" and code.link == 1 then ch = " " end
+				if ch == "Q" then os.exit(1) end
+			until ch == " "
+		end
+		xpcall(innerprotected, innerprotection)
 	end
 
 

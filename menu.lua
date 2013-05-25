@@ -28,24 +28,55 @@ function Menu:dialog(term, prompt, options)
 	return term.root:getch()
 end
 
+function Menu:number(term, prompt, top)
+	local panel = term.root:panel_from_cursor(term)
+
+	panel = panel:fg(0):bg(0):fill():bg(1):border()
+	
+
+	term.root:flush()
+	
+	term.root:getch()
+
+	if action ~= "i" then
+		repeat
+			local key, code = term:getch()
+			local idx = 1 + string.byte(key) - string.byte('a')
+
+			if key == "mouse" then
+				term:at(0, 0):print(tostring(code.link).. "     ")
+				if code.left.justPressed then
+					idx = code.link
+				end
+			end
+			
+			if idx >= 1 and idx <= bag.slots and bag[idx] ~= nil then
+				return idx, action, bag[idx], callback
+			end
+		until key == " "
+	else
+	end
+end
 
 local inventory_prompts = {
 	e = "Equip what?",
 	d = "Drop what?",
 	a = "Apply what?",
 	r = "Remove what?",
-	T = "Attach to what?"
+
+	T = "Attach to which explosive?",
+	T2 = "Attach which detonator?"
 }
 
-function Menu:inventory(term, bag, action, player_x)
-	local panel = term.root:panel_from_cursor(term)
+function Menu:inventory(topterm, bag, action, player_x)
+	local panel = topterm.root:panel_from_cursor(topterm)
 	panel:fg(0):bg(0):fill()
 
-
-	term = panel:clip(2, 1, -4, -2)
+	local term = panel:clip(2, 1, -4, -2)
 
 	local function callback (action)
-		return self:inventory(term, bag, action, player_x)
+		-- todo : this is part of a hack in cronus-main
+		return self:inventory(topterm, bag, action, player_x)
 	end
 
 	local y, x = 0, 0 

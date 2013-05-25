@@ -464,7 +464,12 @@ function cog:manipulate(item_idx, command, inventory)
 			end
 		end
 		if item.info.needs == "detonator" then
-			self:say "(a)pply a detonator to this to use this"
+			-- inventory ("number", "Prime it for how many turns?")
+			local i, act, other = inventory "T2"
+			if other and other.info.does == "detonates" then
+				self:say ("Now I'll drop the " .. item.name .. "!")
+				other.references = item
+			end
 		end
 	
 		if used then
@@ -631,9 +636,11 @@ function cog:pickup(item, autoequip)
 end
 
 function cog:endturn()
+	-- todo: need a way to alert cogs when their overlaps change (so they can check whether they are falling)
+	local own_floor = self:get_best_floor()
+
 	if not self.moved then
 		-- check for ice
-		local own_floor = self:get_best_floor()
 		if own_floor == "slick" then
 			if self.vx ~= 0 or self.vy ~= 0 then
 				-- try to move that way
@@ -654,7 +661,6 @@ function cog:endturn()
 	else
 		if (self.vx ~= 0 or self.vy ~= 0) and not self.active then
 			-- check whether it's self-propelled, and keep it registered if so
-			local own_floor = self:get_best_floor()
 			if own_floor == "slick" then
 				self.dlvl:activate(self)
 			end

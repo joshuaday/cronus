@@ -173,7 +173,7 @@ function Cursor:fill(glyph)
 	local fg, bg, link = self.fg_c, self.bg_c, self.link_c
 	glyph = glyph or 32
 	for y = self.y1, self.y1 + self.height - 1 do
-		local idx = self.panel:index(self.x1, y + self.y1)
+		local idx = self.panel:index(self.x1, y)
 		for x = self.x1, self.x1 + self.width - 1 do
 			self.panel:putch(idx, fg, bg, glyph, link)
 			idx = idx + 1
@@ -181,6 +181,30 @@ function Cursor:fill(glyph)
 	end
 	return self
 end
+
+function Cursor:border(glyph)
+	-- todo: clip to the panel too
+
+	local fg, bg, link = self.fg_c, self.bg_c, self.link_c
+	glyph = glyph or 32
+	
+	local top_idx, bottom_idx = self.panel:index(self.x1, self.y1), self.panel:index(self.x1, self.height)
+
+	for x = self.x1, self.x1 + self.width - 1 do
+		self.panel:putch(top_idx, fg, bg, glyph, link)
+		self.panel:putch(bottom_idx, fg, bg, glyph, link)
+		top_idx, bottom_idx = top_idx + 1, bottom_idx + 1
+	end
+
+	for y = self.y1, self.y1 + self.height - 1 do
+		local left_idx, right_idx = self.panel:index(self.x1, y), self.panel:index(self.x1 + self.width - 1, y)
+		self.panel:putch(left_idx, fg, bg, glyph, link)
+		self.panel:putch(right_idx, fg, bg, glyph, link)
+	end
+
+	return self:clip(1, 1, -2, -2)
+end
+
 
 function Cursor:wipe()
 	return self:link():fill(0)

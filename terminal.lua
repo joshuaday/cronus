@@ -2,6 +2,7 @@ local ffi = require("ffi")
 local coerce = require("coerce")
 local Panel = require "term-panel"
 local Cursor = require "term-cursor"
+local Menu = require "menu"
 
 -- Supplies the generic terminal implementation that plugs into
 -- the curses and libtcod terminal adapters to supply a unified
@@ -40,27 +41,32 @@ function Terminal:refresh()
 	-- collect garbage (!!!) to remove orphaned panels
 	collectgarbage "collect"
 
+	-- (this is a terrible algorithm but there are so few panels, it's silly to worry)
 	-- copy panels over
-	local visited, panels = { }, { }
-	repeat
-		local unchanged = true
-		for k, v in pairs(self.panels) do
-			if not visited[k] and (k.parent == nil or visited[k.parent]) then
-				k._x1 = k.x1 + (k.parent and k.parent._x1 or 0)
-				k._y1 = k.y1 + (k.parent and k.parent._y1 or 0)
-				visited[k] = true
-				panels[1 + #panels] = k
-				unchanged = false
-			end
-		end
-	until unchanged
+	local children = { }
 
-	-- todo respect z too
-	
+	for k, v in pairs(self.panels) do
+		local p = k.parent or children -- pretend that all unrooted panels are children of /children/
+
+		if not children[p] then
+			children[p] = { }
+		end
+
+		children[p][1 + #children[p]] = k
+	end
+
+	-- sort children of each parent
+	for k, v in pairs(children) do
+		table.sort(v, function (a, b)
+			if a.z < b.z then return 1 elseif a.z > b.z then return -1 else return 0 end
+		end)
+	end
+
 	-- todo only write each cell once no matter how many panels overlap
-	for i = 1, #panels do
-		local panel = panels[i]
+	children._x1, children._y1 = 0, 0
+	local function draw_panel(panel)
 		local x1, y1 = panel._x1, panel._y1
+
 		for y = 0, panel.height - 1 do
 			for x = 0, panel.width - 1 do
 				local idx = panel:index(x, y)
@@ -73,6 +79,22 @@ function Terminal:refresh()
 			end
 		end
 	end
+
+	local function draw_children(panel)
+		local x1, y1 = panel._x1, panel._y1
+
+		local kids = children[panel]
+		if kids then
+			for i = 1, #kids do
+				local kid = kids[i]
+				kid._x1, kid._y1 = x1 + kid.x1, y1 + kid.y1
+				draw_panel(kid)
+				draw_children(kid)
+			end
+		end
+	end
+
+	draw_children(children)
 
 	-- and refresh the adapter
 	self.adapter.refresh()
