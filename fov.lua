@@ -118,7 +118,6 @@ local function scan(board, output, view_x, view_y, mask, integer_permittivity)
 		mask = nonmask
 	end
 
-	output:fill(opaque)
 	output:set(view_x, view_y, mask:get(view_x, view_y))
 
 	local out_cells, out_width = output.cells, output.width

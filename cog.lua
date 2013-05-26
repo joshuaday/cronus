@@ -497,12 +497,12 @@ end
 
 function cog:get_best_floor()
 	local best = "none"
-	
+
 	self:each(function(t, x, y, idx)
 		if best == "solid" then return end -- break out early when the floor is solid already
 
 		-- todo : check whether t is a type that can function as a foot; otherwise ignore it
-		best = better_floor(best, self.dlvl:topmost(self.x1, self.y1, function(cog, tile)
+		best = better_floor(best, self.dlvl:topmost(x, y, function(cog, tile)
 			return tile.floor
 		end))
 	end)
@@ -641,6 +641,7 @@ function cog:endturn()
 
 	if own_floor == "none" then
 		if not self.is_player then
+			-- todo : support multiple
 			self.dlvl:removecog(self)
 			return
 		else

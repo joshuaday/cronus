@@ -203,18 +203,16 @@ end
 
 function level:topmost(x, y, fn)
 	local cog_idx = self.top:get(x, y)
-	if cog_idx == 0 then
-		return fn(self.voidcog, Catalog.tiles.void)
-	else
-		while cog_idx ~= 0 do
-			local next_cog = self.cogs[cog_idx]
-			local result = fn(next_cog, next_cog:get(x, y))
-			if result then
-				return result
-			end
-			cog_idx = next_cog.down:get(x, y)
+
+	while cog_idx ~= 0 do
+		local next_cog = self.cogs[cog_idx]
+		local result = fn(next_cog, next_cog:get(x, y))
+		if result then
+			return result
 		end
+		cog_idx = next_cog.down:get(x, y)
 	end
+	return fn(self.voidcog, Catalog.tiles.void)
 end
 
 local function wipe_stamped_cell(level, x, y)
@@ -350,16 +348,18 @@ function level:update_fov()
 	for i = 1, #self.cogs do
 		local eye = self.cogs[i]
 		if eye.fov ~= nil then
-			local eye_x, eye_y = eye.map.x1, eye.map.y1
-			eye.fov:recenter(eye_x, eye_y)
-
-			local eye_aquatic = self.waterseethrough:get(eye_x, eye_y) > 0
-
-			if eye_aquatic then
-				Fov.scan(self.waterseethrough, eye.fov, eye_x, eye_y, eye.fov_mask, 0.0)
-			else
-				Fov.scan(self.seethrough, eye.fov, eye_x, eye_y, eye.fov_mask, 0.0)
-			end
+			eye.fov:recenter(eye.x1, eye.y1):zero() -- todo: recenter correctly (on the middle of the eye, not the corner)
+	
+			eye:each(function(t, x, y, idx)
+				-- todo : update the eye_aquatic to use the current stance
+				local eye_aquatic = self.waterseethrough:get(x, y) > 0
+				
+				if eye_aquatic then
+					Fov.scan(self.waterseethrough, eye.fov, x, y, eye.fov_mask, 0.0)
+				else
+					Fov.scan(self.seethrough, eye.fov, x, y, eye.fov_mask, 0.0)
+				end
+			end)
 
 			if eye.team == "player" then
 				self.fov:stamp(eye.fov, bit.bor)
@@ -456,8 +456,8 @@ function level:spawn(name)
 
 	local range = 13
 	if dude.info.ai == "you" then
-		dude.fov = Layer.new("int", range * 2 + 1, range * 2 + 1)
-		dude.fov_mask = Mask.circle(range * 2 + 1, range * 2 + 1)
+		dude.fov = Layer.new("int", range * 2 + dude.map.width, range * 2 + dude.map.height)
+		dude.fov_mask = Mask.circle(range * 2 + dude.map.width, range * 2 + dude.map.height)
 	end
 	dude.team = "dungeon"
 	
