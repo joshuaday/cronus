@@ -150,18 +150,18 @@ local raw_tiles = {
 
 
 	tree = {
-		glyph = "&", fg = 2, bg = 0,
+		glyph = "&", fg = 2, --bg = 0,
 		seethrough = 0.0, blocking = 1,
 		complaint = "The growth feels pulpy and unpleasant."
 	},
 
 	bushes = {
-		glyph = "\"", fg = 2, bg = 0,
+		glyph = "\"", fg = 0, --bg = 0,
 		seethrough = 0
 	},
 
 	door = {
-		glyph = "+", fg = 1, bg = 0,
+		glyph = "+", fg = 9, bg = 0,
 		seethrough = 0
 	},
 
@@ -238,7 +238,17 @@ local raw_spawns = {
 		damage = 1, accuracy = 40,
 		attack_pattern = pattern.bump,
 		must_stand = true, ai = "ape",
-		health = 3
+		health = 3,
+		description = [[
+			If the terrestrial macauque, with its wrinkled visage, is itself the
+			image of the otherworldly, then this impish little beast, its eyes lolling
+			unpleasantly in various and uninterpretable ways, must seem utterly
+			unreal.
+			
+			The %NAME is fascinated by gimmicks and buttons of all kinds, and if it
+			sees a device being operated, is sure to try it, too -- if it can overcome
+			its shyness.
+		]]
 	},
 	pangolin = {
 		name = "promethean pangolin", tile = {
@@ -249,7 +259,10 @@ local raw_spawns = {
 		noises = [[roo hrr]],
 		attack_pattern = pattern.bump,
 		must_stand = true, ai = "ape",
-		health = 5
+		health = 5, description = [[
+			
+			The similarity to the terrestrial pangolin is 
+		]]
 	},
 	spark = {
 		name = "ionian spark", tile = {
@@ -259,7 +272,11 @@ local raw_spawns = {
 		damage = 1, accuracy = 60,
 		attack_pattern = pattern.scythe,
 		must_stand = true, ai = "spark",
-		health = 9
+		health = 9,
+		description = [[
+			This living flame has lost its way; here, far from the volcanic warmth that
+			fostered it, it will flicker out.
+		]]
 	},
 
 

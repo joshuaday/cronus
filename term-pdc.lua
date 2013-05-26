@@ -47,6 +47,12 @@ local function getcurses()
 	return pdcurses, attr
 end
 
+local ascii_remap = {
+	tab = string.byte "\t",
+	escape = 27,
+	enter = string.byte "\n"
+}
+
 local raw_keys = { -- hex constants
 	BREAK = "101",
 	DOWN = "102",
@@ -316,9 +322,11 @@ local function adapter()
 				keys[name] = code
 			end
 
-			-- tab
-			keys.tab = string.byte "\t"
-			keys[keys.tab] = "tab"
+			-- ascii control keys
+			for name, code in pairs(ascii_remap) do
+				keys[name] = code
+				keys[code] = name
+			end
 		end
 
 		local function startcurses()

@@ -28,6 +28,55 @@ function Menu:dialog(term, prompt, options)
 	return term.root:getch()
 end
 
+function Menu:get_string(term, validate)
+	local panel = term.root:panel_from_cursor(term)
+	
+	
+	
+	term.root:flush()
+	
+	local str, cursor = "", 1
+	local valid
+
+	while true do
+		term:bg(0):fg(15):fill():at(0, 0):print(str)
+		term:at(cursor - 1, 0):bg(valid and 4 or 1):put(str:byte(cursor) or 32):bg(0)
+
+		local key, code = term:getch()
+
+		if key == "escape" then
+			return nil
+		elseif key == "enter" then
+			if valid then
+				return str
+			else
+				-- ?beep?
+			end
+		elseif key == "backspace" then
+			str = str:sub(1, cursor - 2) .. str:sub(cursor)
+			cursor = cursor - 1
+		elseif key == "dc" then
+			str = str:sub(1, cursor - 1) .. str:sub(cursor + 1)
+		elseif key == "left" then
+			cursor = cursor - 1
+		elseif key == "right" then
+			cursor = cursor + 1
+		elseif key == "home" then cursor = 1
+		elseif key == "end" then cursor = 1 + #str
+		else
+			str = str:sub(1, cursor - 1) .. key .. str:sub(cursor)
+			cursor = cursor + #key
+		end
+
+		if cursor > 1 + #str then cursor = 1 + #str end
+		if cursor < 1 then cursor = 1 end
+
+		valid = validate(str)
+	end
+
+	return str
+end
+
 function Menu:number(term, prompt, top)
 	local panel = term.root:panel_from_cursor(term)
 

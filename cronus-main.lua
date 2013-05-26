@@ -3,6 +3,7 @@ local Dungeon = require "dungeon"
 local Messaging = require "messaging"
 local Menu = require "menu"
 local Cog = require "cog"
+local Catalog = require "catalog"
 
 local topterm = Terminal.open()
 local term -- this will be clipped to 80x24
@@ -207,7 +208,9 @@ local function simulate(term)
 				local whohere = ""
 				for cog in you.dlvl:cogs_at(1 + code.x, 1 + code.y) do
 					local name
-					if cog.info and cog.info.name then
+					if cog.info and cog.info.description then
+						name = cog.info.description
+					elseif cog.info and cog.info.name then
 						name = cog.info.name
 					else
 						local tile = cog:gettile(1 + code.x, 1 + code.y)
@@ -248,6 +251,14 @@ local function simulate(term)
 
 		if DEBUG_MODE and key == "f7" then
 			dlvl.dirty = true
+			return
+		end
+
+		if DEBUG_MODE and key == "f6" then
+			local spname = Menu:get_string(term, function(s) return Catalog.tiles[s] ~= nil end)
+			
+			you:set(you.x1, you.y1, spname)
+			
 			return
 		end
 
