@@ -255,9 +255,24 @@ local function simulate(term)
 		end
 
 		if DEBUG_MODE and key == "f6" then
-			local spname = Menu:get_string(term, function(s) return Catalog.tiles[s] ~= nil end)
+			local spname = Menu:get_string(term, function(s) return
+				Catalog.tiles[s] ~= nil or Catalog.spawns[s] ~= nil or Catalog.items[s] ~= nil
+			end)
 			
-			you:set(you.x1, you.y1, spname)
+			if not spname then return end
+
+			if Catalog.spawns[spname] then
+				local dude = dlvl:spawn(spname)
+				dude:moveto(you.x1, you.y1)
+			elseif Catalog.items[spname] then
+				local item = Cog.item(spname)
+				you.dlvl:addcog(item)
+				item:moveto(you.x1, you.y1)
+			else
+				you.dlvl:overlap(you, function(cog, x, y)
+					cog:set(x, y, spname)
+				end)
+			end
 			
 			return
 		end

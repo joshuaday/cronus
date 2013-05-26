@@ -639,6 +639,15 @@ function cog:endturn()
 	-- todo: need a way to alert cogs when their overlaps change (so they can check whether they are falling)
 	local own_floor = self:get_best_floor()
 
+	if own_floor == "none" then
+		if not self.is_player then
+			self.dlvl:removecog(self)
+			return
+		else
+			Messaging:announce {"You fall.", ttl = 500}
+		end
+	end
+
 	if not self.moved then
 		-- check for ice
 		if own_floor == "slick" then

@@ -31,45 +31,74 @@ end
 function Menu:get_string(term, validate)
 	local panel = term.root:panel_from_cursor(term)
 	
-	
-	
 	term.root:flush()
 	
-	local str, cursor = "", 1
-	local valid
+	local str, cursor, cursor_end = "", 1, 1
+	local valid, beep
 
 	while true do
-		term:bg(0):fg(15):fill():at(0, 0):print(str)
-		term:at(cursor - 1, 0):bg(valid and 4 or 1):put(str:byte(cursor) or 32):bg(0)
+		term:bg(beep and 4 or 0):fg(15):fill():at(0, 0):print(str)
+		for i = cursor, cursor_end do
+			term:at(i - 1, 0):bg(valid and 4 or 1):put(str:byte(i) or 32)
+		end
+		term:bg(0)
+		
+		local key, code = term:getch(beep and false or 120)
 
-		local key, code = term:getch()
+		beep = false
 
-		if key == "escape" then
+		if key == nil then
+		elseif key == "escape" then
 			return nil
 		elseif key == "enter" then
 			if valid then
 				return str
 			else
-				-- ?beep?
+				beep = true
 			end
 		elseif key == "backspace" then
-			str = str:sub(1, cursor - 2) .. str:sub(cursor)
+			if cursor < 2 then cursor = 2 end
+			str = str:sub(1, cursor - 2) .. str:sub(cursor_end)
 			cursor = cursor - 1
+			cursor_end = cursor
 		elseif key == "dc" then
-			str = str:sub(1, cursor - 1) .. str:sub(cursor + 1)
+			str = str:sub(1, cursor - 1) .. str:sub(cursor_end + 1)
+			cursor_end = cursor
 		elseif key == "left" then
 			cursor = cursor - 1
+			cursor_end = cursor
 		elseif key == "right" then
-			cursor = cursor + 1
-		elseif key == "home" then cursor = 1
-		elseif key == "end" then cursor = 1 + #str
+			cursor_end = cursor_end + 1
+			cursor = cursor_end
+		elseif key == "sleft" then
+			cursor = cursor - 1
+		elseif key == "sright" then
+			cursor_end = cursor_end + 1
+		elseif key == "home" then
+			cursor = 1
+			cursor_end = cursor
+		elseif key == "end" then
+			cursor = 1 + #str
+			cursor_end = cursor
+		elseif key == "mouse" then
+			if code.y == 0 and code.left.justPressed then
+				cursor = code.x + 1
+				cursor_end = cursor
+			end
+			if code.left.justReleased then
+				cursor_end = code.x + 1
+			end
 		else
-			str = str:sub(1, cursor - 1) .. key .. str:sub(cursor)
+			str = str:sub(1, cursor - 1) .. key .. str:sub(cursor_end)
 			cursor = cursor + #key
+			cursor_end = cursor
 		end
 
 		if cursor > 1 + #str then cursor = 1 + #str end
 		if cursor < 1 then cursor = 1 end
+		if cursor_end > 1 + #str then cursor_end = 1 + #str end
+		if cursor_end < 1 then cursor_end = 1 end
+		if cursor > cursor_end then cursor, cursor_end = cursor_end, cursor end
 
 		valid = validate(str)
 	end

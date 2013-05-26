@@ -388,15 +388,14 @@ local function adapter()
 		do
 			local ch = ncurses.getch()
 
-			if ch > 31 and ch < 256 then
+			if ch > 31 and ch < 128 then
 				return string.char(ch), ch
+			elseif keys[ch] == "mouse" then
+				return getmouse()
 			elseif keys[ch] then
-				if keys[ch] == "mouse" then
-					return getmouse()
-				end
 				return keys[ch], ch
 			elseif ch > 1 then
-				return string.char(ch), ch
+				return tostring(ch), ch
 			end
 		end
 	end
