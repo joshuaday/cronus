@@ -348,7 +348,9 @@ function level:update_fov()
 	for i = 1, #self.cogs do
 		local eye = self.cogs[i]
 		if eye.fov ~= nil then
-			eye.fov:recenter(eye.x1, eye.y1):zero() -- todo: recenter correctly (on the middle of the eye, not the corner)
+			eye.fov:moveto(
+				eye.x1 - .5 * (eye.fov.width - eye.map.width), eye.y1 - .5 * (eye.fov.height - eye.map.height)
+			):zero() -- todo: recenter correctly (on the middle of the eye, not the corner)
 	
 			eye:each(function(t, x, y, idx)
 				-- todo : update the eye_aquatic to use the current stance

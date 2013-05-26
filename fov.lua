@@ -110,6 +110,7 @@ local function scan(board, output, view_x, view_y, mask, integer_permittivity)
 	dest.angle[0] = 0
 	src.angle[0] = 0
 
+	-- output:zero() -- this is now an external requirement
 	-- output.recenter(view_x, view_y) -- this is now an external requirement
 
 	if mask then
@@ -124,7 +125,6 @@ local function scan(board, output, view_x, view_y, mask, integer_permittivity)
 	
 	for z = 1, range - 1 do
 		local x, y = view_x - z, view_y - z
-		local idx = output:index(x, y)
 
 		local sidelength = 2.0 * z
 		local inv_cell_length = (4.0 * sidelength)
@@ -134,33 +134,36 @@ local function scan(board, output, view_x, view_y, mask, integer_permittivity)
 		src.idx, dest.idx = 1, 1
 
 		for side = 0, 3 do
-			local dx, dy, didx
+			local dx, dy
 
-			if side == 0 then dx, dy, didx = 1, 0, 1
-			elseif side == 1 then dx, dy, didx = 0, 1, out_width
-			elseif side == 2 then dx, dy, didx = -1, 0, -1
+			if side == 0 then dx, dy = 1, 0
+			elseif side == 1 then dx, dy = 0, 1
+			elseif side == 2 then dx, dy = -1, 0
 			elseif side == 3 then
-				dx, dy, didx = 0, -1, -out_width
+				dx, dy = 0, -1
 				sidelength = sidelength + 1.0 	
 			end
 				
 			for t = 1, sidelength do
 				local close = cellnumber * cell_length
 				local index = board:index(x, y) -- branching in here is probably slow
+				local idx = output:index(x, y)
 				local m = mask:get(x, y)
 
-				if true or index > 0 and m > 0.0 then 
-					-- the commented test makes it faster, but causes weird artifacts
+				if true or index > 0 and m > 0 then 
 					local info = board.cells[index]
 					local sight = fovhead_zoomto(dest, src, close, inv_cell_length, board.cells[index])
 					-- out_cells[idx] = sight * m-- double version
-					out_cells[idx] = sight > integer_permittivity and m or 0 -- integer version
+	
+					if sight > integer_permittivity then -- integer version
+						out_cells[idx] = m
+					end
 				else
 					-- a hack to keep the skipping happy.  doesn't work, though.
 					dest.angle[dest.idx - 1] = close
 				end
 				
-				x, y, idx = x + dx, y + dy, idx + didx
+				x, y = x + dx, y + dy
 
 				cellnumber = cellnumber + 1
 			end
