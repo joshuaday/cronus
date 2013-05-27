@@ -45,7 +45,21 @@ end
 local ascii_remap = {
 	tab = string.byte "\t",
 	escape = 27,
-	enter = string.byte "\n"
+	enter = string.byte "\n",
+	
+	-- modified keys:
+	cleft = 539,
+	cright = 554,
+	csleft = 540,
+	csright = 555,
+
+	cup = 560,
+	cdown = 519,
+
+	cppage = 549,
+	cnpage = 544,
+
+	cdc = 513
 }
 
 local raw_keys = {

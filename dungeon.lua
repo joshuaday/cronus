@@ -69,6 +69,11 @@ function level:update()
 		end
 		table.remove(self.turnorder, 1)
 
+		-- make sure that we update the cog numbers if cogs have been added or removed:
+		if self.dirty then
+			self:refresh()
+		end
+
 		if mob.dlvl == self then
 			if mob.active then
 				-- if the mob is active and is still on this level, it gets its turn now

@@ -10,11 +10,10 @@ local function new_mob_cog(spawn_name)
 	local spawn = Catalog.spawns[spawn_name]
 	local tile = spawn.tile
 
-	local self = Cog.new(3, 3)
+	local self = Cog.new(1, 1)
 	self.map:set(1, 1, spawn.tile.idx)
-	self.map:set(1, 3, spawn.tile.idx)
-	self.map:set(3, 1, spawn.tile.idx)
-	self.map:set(3, 3, spawn.tile.idx)
+	--self.map:set(1, 3, spawn.tile.idx)
+	--self.map:set(3, 1, spawn.tile.idx)
 
 	self.info = spawn
 	self.tile = tile

@@ -37,6 +37,8 @@ function Menu:get_string(term, validate)
 	local valid, beep
 
 	while true do
+		valid = validate(str)
+
 		term:bg(beep and 4 or 0):fg(15):fill():at(0, 0):print(str)
 		for i = cursor, cursor_end do
 			term:at(i - 1, 0):bg(valid and 4 or 1):put(str:byte(i) or 32)
@@ -99,8 +101,6 @@ function Menu:get_string(term, validate)
 		if cursor_end > 1 + #str then cursor_end = 1 + #str end
 		if cursor_end < 1 then cursor_end = 1 end
 		if cursor > cursor_end then cursor, cursor_end = cursor_end, cursor end
-
-		valid = validate(str)
 	end
 
 	return str

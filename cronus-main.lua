@@ -255,11 +255,13 @@ local function simulate(term)
 		end
 
 		if DEBUG_MODE and key == "f6" then
-			local spname = Menu:get_string(term, function(s) return
-				Catalog.tiles[s] ~= nil or Catalog.spawns[s] ~= nil or Catalog.items[s] ~= nil
+			local spname = Menu:get_string(term, function(s)
+				if s == "" or Catalog.tiles[s] or Catalog.spawns[s] or Catalog.items[s] then
+					return s
+				end
 			end)
 			
-			if not spname then return end
+			if spname == "" or not spname then return end
 
 			if Catalog.spawns[spname] then
 				local dude = dlvl:spawn(spname)

@@ -165,8 +165,15 @@ function cog:may_take_step(dx, dy)
 	return true
 end
 
+function cog:interact(dx, dy)
+	-- check for interactions in this direction that do _not_ involve moving
+	local dlvl = self.dlvl
+	
+end
+
 function cog:remove_pushes(dx, dy)
 	-- todo : put this on the dlvl instead of cog
+	-- todo : give each "ring" of linked objects its own shared object
 
 	-- this IGNORES all diagonal rules and inserts (into 'bumps') all cells that
 	-- would be push-interacted with if the step were taken
@@ -395,6 +402,10 @@ function cog:trigger()
 
 		dlvl:removecog(self)
 	end
+end
+
+function cog:send(signal, x, dy)
+	
 end
 
 function cog:manipulate(item_idx, command, inventory)
