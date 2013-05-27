@@ -30,6 +30,11 @@ end
 
 function Menu:get_string(term, validate)
 	local panel = term.root:panel_from_cursor(term)
+
+	-- isnonpunct is used for ctrl-left / ctrl-right
+	local function isnonpunct(ch)
+		return (ch >= 48 and ch <= 58) or (ch >= 65 and ch <= 90) or (ch >= 96 and ch <= 121)
+	end
 	
 	term.root:flush()
 	
@@ -76,6 +81,40 @@ function Menu:get_string(term, validate)
 			cursor = cursor - 1
 		elseif key == "sright" then
 			cursor_end = cursor_end + 1
+		elseif key == "cleft" or key == "csleft" then
+			-- go one word left; one word is one chunk of whitespace and then
+			-- one alphanumeric sequence OR one non-alphanumeric sequence
+			while cursor > 1 and (cursor >= #str or str:byte(cursor) <= 32) do
+				cursor = cursor - 1
+			end
+			
+			if cursor > 1 then
+				local punct = isnonpunct(str:byte(cursor))
+				
+				while cursor > 1 and str:byte(cursor) > 32 and punct == isnonpunct(str:byte(cursor)) do
+					cursor = cursor - 1
+				end
+			end
+			if key == "cleft" then
+				cursor_end = cursor
+			end
+		elseif key == "cright" or key == "csright" then
+			-- go one word right; one word is one chunk of whitespace and then
+			-- one alphanumeric sequence OR one non-alphanumeric sequence
+			while cursor_end <= #str and str:byte(cursor_end) <= 32 do
+				cursor_end = cursor_end + 1
+			end
+			
+			if cursor <= #str then
+				local punct = isnonpunct(str:byte(cursor_end))
+				
+				while cursor_end <= #str and str:byte(cursor_end) > 32 and punct == isnonpunct(str:byte(cursor_end)) do
+					cursor_end = cursor_end + 1
+				end
+			end
+			if key == "cright" then
+				cursor = cursor_end
+			end
 		elseif key == "home" then
 			cursor = 1
 			cursor_end = cursor
