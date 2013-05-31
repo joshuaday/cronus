@@ -42,7 +42,9 @@ function Mask.polygon(w, h)
 end
 
 function Mask.splash(cellcount)
-	local squish = .5
+	-- todo: extend splash to accept an existing mask and a squish parameter that describes how
+	--       completely it should attempt to fill that mask (possibly a new mask type?)
+	local squish = .2 --.25
 	local side = math.ceil(math.sqrt(cellcount / squish))
 	local w, h = side, side
 
@@ -62,6 +64,7 @@ end
 
 -- circle is really a different kind of mask, and this is a dicey issue
 function Mask.circle(w, h)
+	-- todo: replace this floating point circle with a proper discrete bresenham-style circle
 	local radius = math.floor(.5 * (math.min(w, h) - 1))
 	local edge = 1 + radius * 2
 	local output = Mask.new(w, h)

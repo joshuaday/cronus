@@ -604,13 +604,16 @@ local function new_level(width, height, dlvl_up)
 	end
 
 	local function does_not_overlap_bigmask(v, x, y)
-		return v < .5 or bigmask:get(x, y) < .5 
+		return v == 0 or bigmask:get(x, y) == 0
 	end
 
 	--local ss_seq = {0, 0, 0, 30, 3, 3, 3, 0, 0, 2}
-	local ss_seq = {0, 6, 20, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10}
+	--local ss_seq = {0, 6, 20, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10}
+	local ss_seq = {0, 0, 0, 0, 0, 0, 0, 0, 0, 200, 0, 0, 0, 0, 0, 0}
+	-- local ss_seq = { 0, 0, 0, 0,  900}
 	local ss, numsofar = #ss_seq, 0
 	
+	bigmask:set_default(1)
 	while true do
 		numsofar = 1 + numsofar
 		while numsofar > ss_seq[ss] do
@@ -624,7 +627,9 @@ local function new_level(width, height, dlvl_up)
 		local positioned = false
 
 		for j = 1, 20 do
-			room:moveto(math.random(1, 1 + width - room.width), math.random(1 + height - room.height))
+			-- room:moveto(math.random(1 + width - room.width), math.random(1 + height - room.height))
+			-- todo : compute actual void boundary to avoid off-map wasted checks
+			room:moveto(math.random(room.width + width) - room.width, math.random(room.height + height) - room.height)
 			positioned = room:all(does_not_overlap_bigmask) 
 			if positioned then
 				break
@@ -761,26 +766,28 @@ local function new_level(width, height, dlvl_up)
 
 	-- rocks.map:set(20, 20, Catalog:idx("handle"))
 
-	local function make_a_rock_temp(x, y, linkto)
-		local boulder = Cog.new(1, 1)
-		boulder.no_lift = true -- todo: add to the catalog somehow?
-		boulder:set(1, 1, "boulder")
-		self:addcog(boulder)
-		boulder:moveto(x, y)
+	if false then
+		local function make_a_rock_temp(x, y, linkto)
+			local boulder = Cog.new(1, 1)
+			boulder.no_lift = true -- todo: add to the catalog somehow?
+			boulder:set(1, 1, "boulder")
+			self:addcog(boulder)
+			boulder:moveto(x, y)
 
-		if linkto then
-			-- todo : make both use the same link table?
-			boulder.link = {cog = linkto, dx = 1, dy = -1}
-			linkto.link = {cog = boulder, dx = 1, dy = -1}
+			if linkto then
+				-- todo : make both use the same link table?
+				boulder.link = {cog = linkto, dx = 1, dy = -1}
+				linkto.link = {cog = boulder, dx = 1, dy = -1}
+			end
+
+			return boulder
 		end
-
-		return boulder
+		local BOULDER = make_a_rock_temp(15, 5)
+		make_a_rock_temp(18, 5, BOULDER) -- note that an odd distance will make it possible to overlap (todo: fix)
+		BOULDER = make_a_rock_temp(15, 7)
+		make_a_rock_temp(15, 8, BOULDER)
+		make_a_rock_temp(15, 9)
 	end
-	local BOULDER = make_a_rock_temp(15, 5)
-	make_a_rock_temp(18, 5, BOULDER) -- note that an odd distance will make it possible to overlap (todo: fix)
-	BOULDER = make_a_rock_temp(15, 7)
-	make_a_rock_temp(15, 8, BOULDER)
-	make_a_rock_temp(15, 9)
 
 
 	-- now splash a bunch of foliage and stuff onto the floor
@@ -788,19 +795,17 @@ local function new_level(width, height, dlvl_up)
 	local decormask = bigmask:clone()
 
 	local function splash_some(decoration, amt)
-		local x, y
+		local x, y = decormask:random_by_weight()
 
-		for i = 1, 9 do
-			x, y = math.random(self.width), math.random(self.height)
-			if decormask:get(x, y) > 0 then break end
-		end
-		amt = amt or math.random(9, 12)
-		for accept, x, y in workspace:spill(x, y) do
-			if amt > 0 and decormask:get(x, y) > 0.0 then
-				accept()
-				decormask:set(x, y, 0.0)
-				decor:set(x, y, decoration) -- todo : speed up lookups
-				amt = amt - 1
+		if x ~= nil then
+			amt = amt or math.random(9, 12)
+			for accept, x, y in workspace:spill(x, y) do
+				if amt > 0 and decormask:get(x, y) > 0.0 then
+					accept()
+					decormask:set(x, y, 0.0)
+					decor:set(x, y, decoration) -- todo : speed up lookups
+					amt = amt - 1
+				end
 			end
 		end
 	end
@@ -810,10 +815,10 @@ local function new_level(width, height, dlvl_up)
 	splash_some("ice", 30)
 	splash_some("water", 50)
 	splash_some("water", 50)
-	splash_some("water", 50)
-	splash_some("bushes", 12)
-	splash_some("bushes", 12)
-	splash_some("bushes", 12)
+	splash_some("water", 150)
+	splash_some("bushes", 3)
+	splash_some("bushes", 7)
+	splash_some("bushes", 7)
 	splash_some("bushes", 12)
 	splash_some("bushes", 12)
 	splash_some("bushes", 12)
@@ -827,16 +832,20 @@ local function new_level(width, height, dlvl_up)
 	-- configuration.  repeat many times to layer multiple puzzles on top of each
 	-- other.
 
-	Puzzle.puzzlify(self, bigmask)
-
-	-- spawn some hordes
-	for i = 1, 5 do
-		smart_spawn_horde(self, random.pick(prototype.hordes))
+	if false then
+		Puzzle.puzzlify(self, bigmask)
 	end
 
-	-- spawn some items
-	for i = 1, math.random(3, 5) do
-		smart_spawn_item(self)
+	if false then
+		-- spawn some hordes
+		for i = 1, 5 do
+			smart_spawn_horde(self, random.pick(prototype.hordes))
+		end
+
+		-- spawn some items
+		for i = 1, math.random(3, 5) do
+			smart_spawn_item(self)
+		end
 	end
 
 	-- finally, get the map ready for use and return it
