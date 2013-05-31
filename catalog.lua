@@ -6,7 +6,7 @@ local levels = {
 	{
 		rooms = ([[30*splash-50;30*splash-30]]),
 		floors = ("redfloor redfloor brownfloor grayfloor brownfloor"):split" ",
-		walls = ("redwall redwall brownwall graywall brownfloor"):split " ",
+		walls = ("redwall redwall brownwall graywall brownwall"):split " ",
 		hordes = {
 			"ape",
 			"ape ape",
@@ -16,7 +16,7 @@ local levels = {
 	{
 		rooms = ([[30*splash-50;30*splash-30]]),
 		floors = ("redfloor redfloor brownfloor grayfloor grayfloor brownfloor"):split" ",
-		walls = ("redwall redwall brownwall graywall graywall brownfloor"):split " ",
+		walls = ("redwall redwall brownwall graywall graywall brownwall"):split " ",
 		hordes = {
 			"ape ape ape",
 			"pangolin",
@@ -26,7 +26,7 @@ local levels = {
 	{
 		rooms = ([[30*splash-50;30*splash-30]]),
 		floors = ("redfloor redfloor brownfloor grayfloor grayfloor brownfloor"):split" ",
-		walls = ("redwall redwall brownwall graywall graywall brownfloor"):split " ",
+		walls = ("redwall redwall brownwall graywall graywall brownwall"):split " ",
 		hordes = {
 			"pangolin pangolin",
 			"eel eel eel",
@@ -36,7 +36,7 @@ local levels = {
 	{
 		rooms = ([[30*splash-50;30*splash-30]]),
 		floors = ("redfloor redfloor brownfloor grayfloor grayfloor brownfloor"):split" ",
-		walls = ("redwall redwall brownwall graywall graywall brownfloor"):split " ",
+		walls = ("redwall redwall brownwall graywall graywall brownwall"):split " ",
 		hordes = {
 			"ape ape",
 			"squid squid eel",
@@ -47,7 +47,7 @@ local levels = {
 	{
 		rooms = ([[30*splash-50;30*splash-30]]),
 		floors = ("redfloor redfloor brownfloor grayfloor grayfloor brownfloor"):split" ",
-		walls = ("redwall redwall brownwall graywall graywall brownfloor"):split " ",
+		walls = ("redwall redwall brownwall graywall graywall brownwall"):split " ",
 		hordes = {
 			"borer",
 			"olympian",
@@ -58,7 +58,7 @@ local levels = {
 	{
 		rooms = ([[30*splash-50;30*splash-30]]),
 		floors = ("redfloor redfloor brownfloor grayfloor grayfloor brownfloor"):split" ",
-		walls = ("redwall redwall brownwall graywall graywall brownfloor"):split " ",
+		walls = ("redwall redwall brownwall graywall graywall brownwall"):split " ",
 		hordes = {
 			"prelate prelate",
 			"horror",

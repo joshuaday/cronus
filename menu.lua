@@ -81,7 +81,7 @@ function Menu:get_string(term, validate)
 			cursor = cursor - 1
 		elseif key == "sright" then
 			cursor_end = cursor_end + 1
-		elseif key == "cleft" or key == "csleft" then
+		elseif key == "cleft" or key == "csleft" or key == "23" then
 			-- go one word left; one word is one chunk of whitespace and then
 			-- one alphanumeric sequence OR one non-alphanumeric sequence
 			while cursor > 1 and (cursor >= #str or str:byte(cursor) <= 32) do
@@ -96,6 +96,11 @@ function Menu:get_string(term, validate)
 				end
 			end
 			if key == "cleft" then
+				cursor_end = cursor
+			end
+			if key == "23" then
+				-- ^W
+				str = str:sub(1, cursor - 1) .. str:sub(cursor_end)
 				cursor_end = cursor
 			end
 		elseif key == "cright" or key == "csright" then
@@ -122,12 +127,19 @@ function Menu:get_string(term, validate)
 			cursor = 1 + #str
 			cursor_end = cursor
 		elseif key == "mouse" then
+			local x = code.x + 1
 			if code.y == 0 and code.left.justPressed then
-				cursor = code.x + 1
-				cursor_end = cursor
+				if code.ctrl or code.shift then
+					if x <= cursor then cursor = x
+					elseif x >= cursor_end then cursor_end = x
+					end
+				else
+					cursor = x
+					cursor_end = cursor
+				end
 			end
 			if code.left.justReleased then
-				cursor_end = code.x + 1
+				cursor_end = x
 			end
 		else
 			str = str:sub(1, cursor - 1) .. key .. str:sub(cursor_end)

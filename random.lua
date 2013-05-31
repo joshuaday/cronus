@@ -32,6 +32,10 @@ function random.uniform(min, max)
 	return min + (max - min) * rng()
 end
 
+function random.int(min, max)
+	return min + math.floor((1 + max - min) * rng())
+end
+
 
 _G.random = random
 

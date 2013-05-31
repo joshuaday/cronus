@@ -199,6 +199,31 @@ function layer:each(f)
 	return self
 end
 
+function layer:random_by_weight()
+	local total = 0
+	for idx = 1, self.length do
+		total = total + self.cells[idx]
+	end
+	
+	if count == 0 then
+		return nil, nil
+	else
+		local choice = random.uniform(0, total)
+		local idx = 1
+		
+		for y = self.y1, self.y2 do
+			for x = self.x1, self.x2 do
+				choice = choice - self.cells[idx]
+				if choice <= 0 then
+					return x, y
+				end
+
+				idx = idx + 1
+			end
+		end
+	end
+end
+
 function layer:count(f)
 	local ct = 0
 	self:each(function(v, x, y, i) if f(v, x, y, i) then ct = ct + 1 end end)

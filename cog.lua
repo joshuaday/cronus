@@ -497,8 +497,12 @@ end
 local function better_floor(a, b)
 	if a == "solid" or b == "solid" then
 		return "solid"
+	elseif a == "flight" or b == "flight" then
+		return "flight"
 	elseif a == "slick" or b == "slick" then
 		return "slick"
+	elseif a == "frictionless" or b == "frictionless" then
+		return "frictionless"
 	elseif a == "water" or b == "water" then
 		return "water"
 	else
