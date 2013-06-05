@@ -244,6 +244,13 @@ local function simulate(term)
 			autorun()
 		end
 
+		if DEBUG_MODE and key == "f5" then
+			dlvl.dirty = true
+			dlvl:refresh()
+			if you then you:say "(refresh)" end
+			return
+		end
+
 		if DEBUG_MODE and key == "f8" then
 			error("Testing the error handling.")
 			return

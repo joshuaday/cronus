@@ -535,6 +535,7 @@ local function smart_spawn_horde(self, horde)
 	end
 end
 
+local NOISE_ACTIVE = true
 local function new_level(width, height, dlvl_up)
 	local self = setmetatable({
 		depth = dlvl_up and (1 + dlvl_up.depth) or 1,
@@ -609,8 +610,8 @@ local function new_level(width, height, dlvl_up)
 
 	--local ss_seq = {0, 0, 0, 30, 3, 3, 3, 0, 0, 2}
 	--local ss_seq = {0, 6, 20, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10}
-	local ss_seq = {0, 0, 0, 0, 0, 0, 0, 0, 0, 200, 0, 0, 0, 0, 0, 0}
-	-- local ss_seq = { 0, 0, 0, 0,  900}
+	-- local ss_seq = {0, 0, 0, 0, 0, 0, 0, 20, 0, 0, 0, 0, 0, 0, 20, 0, 0, 0, 0, 0}
+	local ss_seq = {0, 15, 10, 0, 0, 8, 0, 0, 0, 5, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0}
 	local ss, numsofar = #ss_seq, 0
 	
 	bigmask:set_default(1)
@@ -646,12 +647,16 @@ local function new_level(width, height, dlvl_up)
 
 	refresh_bigmask = nil -- clear this function name so we don't accidentally call it again!
 
-	-- ensure the connectivity of the mask
+	-- POSTPROCESS THE ROOMS!
+	-- [x] ensure the connectivity of the mask
+	-- [ ] enforce distance constraints
+	-- [ ] ensure jaggedness constraints, diagonal rules, cavernousness
+
 	local zonemap = Layer.new("int", bigmask.width, bigmask.height)
 	local workspace = Layer.new("int", bigmask.width, bigmask.height)
 	local paths = Layer.new("int", bigmask.width, bigmask.height)
 
-	local panic = 3
+	local panic = 40  -- used to be 3, but really, it's more interesting the bigger it is!
 
 	while true do -- almost always runs once, no worries
 		panic = panic - 1 -- well almost no worries
@@ -678,6 +683,7 @@ local function new_level(width, height, dlvl_up)
 			end
 		end
 
+		local target_zone = math.random(1, #zones)
 		repeat
 			local progress = false
 
@@ -685,7 +691,7 @@ local function new_level(width, height, dlvl_up)
 			-- todo : also, move it elsewhere
 			for zonenum = 1, #zones do
 				local zone = zones[zonenum]
-				if zone.value == 1 then
+				if zone.value == target_zone then
 					for accept, x, y, v in workspace:spill(zone.x, zone.y, 1) do
 						local z = zonemap:get(x, y)
 						if z == zonenum then
@@ -695,7 +701,7 @@ local function new_level(width, height, dlvl_up)
 						else
 							paths:set(x, y, v)
 							-- and if, by chance, it is an open zone, roll back and break
-							if zones[z].value == 1 then
+							if zones[z].value == target_zone then
 								-- hooray!  now find our path back (can we?)
 								for x, y in paths:rolldown(x, y) do
 									bigmask:set(x, y, 1)
@@ -720,7 +726,8 @@ local function new_level(width, height, dlvl_up)
 	end
 		
 
-	-- decorate the rocks and the floor!
+	-- DECORATE THE ROOMS!
+	-- [x] decorate the rocks and the floor!
 	do
 		-- not going to lie: these two lines shouldn't be necessary
 		floor:fill("redfloor")
@@ -733,11 +740,11 @@ local function new_level(width, height, dlvl_up)
 			Marble.midpoint(128, 128, sigma, turbulence),
 			Marble.midpoint(128, 128, sigma, turbulence)
 		)
-		floor:each(function(_, x, y)
+		if NOISE_ACTIVE then floor:each(function(_, x, y)
 			local s = sediment:get(x, y)
 			floor:set(x, y, floors[1 + s % #floors])
 			rocks:set(x, y, walls[1 + s % #walls])
-		end)
+		end) end
 	end
 
 	-- floor:recolor( )
@@ -793,6 +800,7 @@ local function new_level(width, height, dlvl_up)
 	-- now splash a bunch of foliage and stuff onto the floor
 
 	local decormask = bigmask:clone()
+	decormask:set_default(0)
 
 	local function splash_some(decoration, amt)
 		local x, y = decormask:random_by_weight()
@@ -800,30 +808,33 @@ local function new_level(width, height, dlvl_up)
 		if x ~= nil then
 			amt = amt or math.random(9, 12)
 			for accept, x, y in workspace:spill(x, y) do
-				if amt > 0 and decormask:get(x, y) > 0.0 then
-					accept()
-					decormask:set(x, y, 0.0)
+				if decormask:get(x, y) > 0 then
+					-- moving the amt > 0 test out here can create a less consistent fill (sometimes desirable)
+					decormask:set(x, y, 0)
 					decor:set(x, y, decoration) -- todo : speed up lookups
-					amt = amt - 1
+					if amt > 0 then 
+						accept()
+						amt = amt - 1
+					end
 				end
 			end
 		end
 	end
 
-	splash_some("ice", 30) -- ice is still buggy
-	splash_some("ice", 30)
-	splash_some("ice", 30)
-	splash_some("water", 50)
-	splash_some("water", 50)
-	splash_some("water", 150)
-	splash_some("bushes", 3)
-	splash_some("bushes", 7)
-	splash_some("bushes", 7)
-	splash_some("bushes", 12)
-	splash_some("bushes", 12)
-	splash_some("bushes", 12)
-	splash_some("bushes", 12)
-	splash_some("bushes", 12)
+	if NOISE_ACTIVE then
+		splash_some("ice", 30)
+		splash_some("ice", 30)
+		splash_some("ice", 30)
+		splash_some("water", 50)
+		splash_some("water", 50)
+		splash_some("water", 150)
+		splash_some("bushes", 3)
+		splash_some("bushes", 7)
+		splash_some("bushes", 7)
+		splash_some("bushes", 8)
+		splash_some("bushes", 8)
+		splash_some("bushes", 8)
+	end
 
 
 	-- to set up pushing puzzles (and lock and key puzzles, and the like), solve

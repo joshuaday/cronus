@@ -36,6 +36,10 @@ function Mask.rectangle(w, h)
 	return output
 end
 
+--function Mask.poly()
+	--local 
+--end
+
 function Mask.polygon(w, h)
 	local output = Mask.new(w, h)
 	return output

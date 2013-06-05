@@ -409,7 +409,7 @@ local function adapter()
 			elseif keys[ch] then
 				return keys[ch], ch
 			elseif ch > 1 then
-				return tostring(ch), ch
+				return "key " .. tostring(ch), ch
 			end
 		end
 	end
