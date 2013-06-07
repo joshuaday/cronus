@@ -63,7 +63,9 @@ function layer:fill(v)
 end
 
 function layer:zero()
+	local oob = self.cells[0]
 	ffi.fill(self.cells, ffi.sizeof(self.cells), 0)
+	self.cells[0] = oob
 	return self
 end
 
@@ -143,7 +145,7 @@ function layer.spill(workspace, x, y, v)
 	end
 
 	workspace:zero()
-	workspace:set_default(1)
+	workspace:default(1)
 
 	touch(x, y, 1)
 	return iterator
@@ -183,7 +185,7 @@ end
 
 
 
-function layer:set_default(v)
+function layer:default(v)
 	self.cells[0] = v
 	return self
 end

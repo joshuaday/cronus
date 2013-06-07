@@ -131,7 +131,7 @@ function Mask.circle(w, h)
 	local c3p0 = 1 / (r2 - falloff_r2)
 
 	output:fill(1.0)
-	output:set_default(0.0)
+	output:default(0.0)
 	output:recenter(0, 0)
 
 	local lower_y = -(radius + .5)

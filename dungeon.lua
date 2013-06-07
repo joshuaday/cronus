@@ -27,7 +27,7 @@ function level:refresh()
 		self.blocking:zero()
 		self.top:zero()
 
-		self.blocking:set_default(1) -- obstructions outside
+		self.blocking:default(1) -- obstructions outside
 
 		self.fg:zero()
 		self.bg:zero()
@@ -606,7 +606,7 @@ local function new_level(width, height, dlvl_up)
 			local room = rooms[i]
 			bigmask:stamp(room, math.max)
 		end
-		bigmask:set_default(1)
+		bigmask:default(1)
 	end
 
 	local function does_not_overlap_bigmask(v, x, y)
@@ -820,7 +820,7 @@ local function new_level(width, height, dlvl_up)
 	-- now splash a bunch of foliage and stuff onto the floor
 
 	local decormask = bigmask:clone()
-	decormask:set_default(0)
+	decormask:default(0)
 
 	local function splash_some(decoration, amt)
 		local x, y = decormask:random_by_weight()
