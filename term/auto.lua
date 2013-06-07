@@ -4,9 +4,9 @@ local attempt
 local errors = { }
 
 if ffi.os == "Windows" then
-	attempt = {"term-pdc", "term-tcod"}
+	attempt = {"term/pdc", "term/tcod"}
 else
-	attempt = {"term-tcod", "term-nc", "term-pdc"}
+	attempt = {"term/tcod", "term/nc", "term/pdc"}
 end
 
 local function try_to_load(lib)

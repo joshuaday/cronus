@@ -637,7 +637,7 @@ local function new_level(width, height, dlvl_up)
 		local room 
 	
 
-		if random.percent(70) then
+		if random.percent(66) then
 			room = Mask.splash(3 * ss * ss)
 		else
 			room = Mask.polygon(random.int(3, 7), ss, random.unit()) --Gen.random_room_mask(ss)

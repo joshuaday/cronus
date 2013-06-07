@@ -1,6 +1,6 @@
 local ffi = require "ffi"
 local coerce = require "coerce"
-local Sys = require "term-sys"
+local Sys = require "term/sys"
 
 local hasbold, hasblink = true, true
 

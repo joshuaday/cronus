@@ -1,7 +1,7 @@
 local ffi = require("ffi")
 local coerce = require("coerce")
-local Panel = require "term-panel"
-local Cursor = require "term-cursor"
+local Panel = require "term/panel"
+local Cursor = require "term/cursor"
 local Menu = require "menu"
 
 -- Supplies the generic terminal implementation that plugs into
@@ -16,7 +16,7 @@ local Menu = require "menu"
 
 --local mode = "term-libtcod"
 --local mode = "term-nc"
-local mode = "term-auto"
+local mode = "term/auto"
 
 local Terminal = { }
 local term_mt = {__index = Terminal}
