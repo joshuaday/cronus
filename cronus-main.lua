@@ -139,17 +139,13 @@ you.is_player = true
 
 local function you_win()
 	local function finally()
-		io.stdout:write("You have defeated Cogs of Cronus (7DRL Edition)!\n")
-		io.stdout:write("Stay tuned for the post 7DRL releases.\n\n")
-		io.stdout:write("(It should have been a 14DRL, really.)\n")
+		io.stdout:write("You have defeated Cogs of Cronus (Post-7DRL Edition)!\n")
 	end
 	os.exit(0, finally) 
 end
 local function you_lose()
 	local function finally()
-		io.stdout:write("You have attempted Cogs of Cronus (7DRL Edition)!\n")
-		io.stdout:write("Stay tuned for the post 7DRL releases.\n\n")
-		io.stdout:write("(It should have been a 14DRL, really.)\n")
+		io.stdout:write("You have attempted Cogs of Cronus (Post-7DRL Edition)!\n")
 	end
 	os.exit(0, finally) 
 end
