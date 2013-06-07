@@ -1,4 +1,4 @@
-local Terminal = require "terminal"
+local Terminal = require "term/root"
 local Dungeon = require "dungeon"
 local Messaging = require "messaging"
 local Menu = require "menu"
