@@ -1,4 +1,5 @@
 local Layer = require "layer"
+local Geometry = require "geometry"
 
 local Mask = { }
 local cache = { }
@@ -36,13 +37,66 @@ function Mask.rectangle(w, h)
 	return output
 end
 
---function Mask.poly()
-	--local 
---end
+function Mask.poly(points)
+	 --local points = {{0, 0}, {9, 4}, {-9, 4}}
+	 --local points = {{0, 0}, {9, 12}, {-9, 12}}
+	--local points = {{-9, 1}, {9, 0}, {9, 11}, {-9, 12}}
+	
+	local npoints = #points
+	local function I(i) if i > npoints then return 1 else return i end end
+	local function X(i) return points[I(i)][1] end
+	local function Y(i) return points[I(i)][2] end
 
-function Mask.polygon(w, h)
-	local output = Mask.new(w, h)
-	return output
+	local x1, y1, x2, y2 = X(1), Y(1), X(1), Y(1)
+
+	for i = 2, npoints do
+		x1 = math.min(x1, X(i))
+		x2 = math.max(x2, X(i))
+
+		y1 = math.min(y1, Y(i))
+		y2 = math.max(y2, Y(i))
+	end
+	
+	local w, h = 1 + x2 - x1, 1 + y2 - y1
+	local mask = Mask.new(w, h)
+	mask:moveto(x1, y1)
+	
+	-- these could be stored temporarily in the mask, but how often will this even be called?
+	local minx, maxx = {}, {}
+	
+	for y = y1, y2 do
+		minx[y], maxx[y] = x2, x1
+	end
+
+	for i = 1, npoints do
+		for x, y in Geometry.bresenham(X(i), Y(i), X(i + 1), Y(i + 1)) do
+			minx[y] = math.min(x, minx[y])
+			maxx[y] = math.max(x, maxx[y])
+		end
+	end
+	for y = y1, y2 do
+		for x = minx[y], maxx[y] do
+			mask:set(x, y, 1)
+		end
+	end
+	
+	return mask
+end
+
+function Mask.polygon(sides, radius, rotate)
+	local points = { }
+	
+	
+	for i = 1, sides do
+		local orient = rotate + (i / sides)
+		local angle = 2 * math.pi * orient
+		points[i] = {
+			math.floor(radius * math.cos(angle)),
+			math.floor(radius * math.sin(angle))
+		}
+	end
+	
+	return Mask.poly(points)
 end
 
 function Mask.splash(cellcount)

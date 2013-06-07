@@ -104,7 +104,7 @@ local raw_tiles = {
 		waterseethrough = 1.0, floor = "water"
 	},
 	chasm = {
-		glyph = "7", fg = 4, bg = 0, blocking = 0,
+		glyph = ":", fg = 4, bg = 0, blocking = 0,
 		floor = "none"
 	},
 	ice = {

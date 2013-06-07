@@ -209,15 +209,18 @@ end
 function level:topmost(x, y, fn)
 	local cog_idx = self.top:get(x, y)
 
-	while cog_idx ~= 0 do
-		local next_cog = self.cogs[cog_idx]
-		local result = fn(next_cog, next_cog:get(x, y))
-		if result then
-			return result
+	if cog_idx == 0 then
+		return fn(self.voidcog, Catalog.tiles.void)
+	else
+		while cog_idx ~= 0 do
+			local next_cog = self.cogs[cog_idx]
+			local result = fn(next_cog, next_cog:get(x, y))
+			if result then
+				return result
+			end
+			cog_idx = next_cog.down:get(x, y)
 		end
-		cog_idx = next_cog.down:get(x, y)
 	end
-	return fn(self.voidcog, Catalog.tiles.void)
 end
 
 local function wipe_stamped_cell(level, x, y)
@@ -536,6 +539,7 @@ local function smart_spawn_horde(self, horde)
 end
 
 local NOISE_ACTIVE = true
+local HALLS_ACTIVE = true
 local function new_level(width, height, dlvl_up)
 	local self = setmetatable({
 		depth = dlvl_up and (1 + dlvl_up.depth) or 1,
@@ -602,19 +606,24 @@ local function new_level(width, height, dlvl_up)
 			local room = rooms[i]
 			bigmask:stamp(room, math.max)
 		end
+		bigmask:set_default(1)
 	end
 
 	local function does_not_overlap_bigmask(v, x, y)
-		return v == 0 or bigmask:get(x, y) == 0
+		-- doesn't overlap if it's not present in this cell (v == 0)
+		-- or if the bigmask is 0 locally
+		return (v == 0) or (bigmask:get(x, y) == 0)
 	end
+
+	-- GENERATE THE ROOMS --
+	------------------------
 
 	--local ss_seq = {0, 0, 0, 30, 3, 3, 3, 0, 0, 2}
 	--local ss_seq = {0, 6, 20, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10}
 	-- local ss_seq = {0, 0, 0, 0, 0, 0, 0, 20, 0, 0, 0, 0, 0, 0, 20, 0, 0, 0, 0, 0}
-	local ss_seq = {0, 15, 10, 0, 0, 8, 0, 0, 0, 5, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0}
+	local ss_seq = {0, 15, 20, 40, 0, 0, 16}
 	local ss, numsofar = #ss_seq, 0
 	
-	bigmask:set_default(1)
 	while true do
 		numsofar = 1 + numsofar
 		while numsofar > ss_seq[ss] do
@@ -624,7 +633,16 @@ local function new_level(width, height, dlvl_up)
 		end
 		if ss < 1 then break end
 
-		local room = Mask.splash(ss * ss) --Gen.random_room_mask(ss)
+		-- local room = Mask.splash(ss * ss) --Gen.random_room_mask(ss)
+		local room 
+	
+
+		if random.percent(70) then
+			room = Mask.splash(3 * ss * ss)
+		else
+			room = Mask.polygon(random.int(3, 7), ss, random.unit()) --Gen.random_room_mask(ss)
+		end
+
 		local positioned = false
 
 		for j = 1, 20 do
@@ -647,7 +665,8 @@ local function new_level(width, height, dlvl_up)
 
 	refresh_bigmask = nil -- clear this function name so we don't accidentally call it again!
 
-	-- POSTPROCESS THE ROOMS!
+	-- POSTPROCESS THE ROOMS! --
+	----------------------------
 	-- [x] ensure the connectivity of the mask
 	-- [ ] enforce distance constraints
 	-- [ ] ensure jaggedness constraints, diagonal rules, cavernousness
@@ -658,7 +677,7 @@ local function new_level(width, height, dlvl_up)
 
 	local panic = 40  -- used to be 3, but really, it's more interesting the bigger it is!
 
-	while true do -- almost always runs once, no worries
+	while HALLS_ACTIVE do -- almost always runs once, no worries
 		panic = panic - 1 -- well almost no worries
 		if panic == 0 then
 			return new_level(width, height, dlvl_up)
@@ -726,7 +745,8 @@ local function new_level(width, height, dlvl_up)
 	end
 		
 
-	-- DECORATE THE ROOMS!
+	-- DECORATE THE ROOMS! --
+	-------------------------
 	-- [x] decorate the rocks and the floor!
 	do
 		-- not going to lie: these two lines shouldn't be necessary
@@ -835,6 +855,9 @@ local function new_level(width, height, dlvl_up)
 		splash_some("bushes", 8)
 		splash_some("bushes", 8)
 	end
+
+	-- DECORATE WALLS (REPLACE SOME WITH CHASMS?) --
+	------------------------------------------------
 
 
 	-- to set up pushing puzzles (and lock and key puzzles, and the like), solve
