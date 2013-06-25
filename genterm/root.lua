@@ -1,5 +1,5 @@
 local ffi = require("ffi")
-local coerce = require("coerce")
+local coerce = require "genterm/coerce"
 local Panel = require "genterm/panel"
 local Cursor = require "genterm/cursor"
 local Menu = require "menu"
@@ -16,7 +16,7 @@ local Menu = require "menu"
 
 --local mode = "term-libtcod"
 --local mode = "term-nc"
-local mode = "term/auto"
+local mode = "genterm/auto"
 
 local Terminal = { }
 local term_mt = {__index = Terminal}
