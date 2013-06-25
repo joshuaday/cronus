@@ -1,7 +1,7 @@
 local ffi = require("ffi")
 local coerce = require("coerce")
-local Panel = require "term/panel"
-local Cursor = require "term/cursor"
+local Panel = require "genterm/panel"
+local Cursor = require "genterm/cursor"
 local Menu = require "menu"
 
 -- Supplies the generic terminal implementation that plugs into

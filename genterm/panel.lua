@@ -1,5 +1,5 @@
 local ffi = require("ffi")
-local coerce = require("coerce")
+local coerce = require("genterm/coerce")
 
 local Panel = { }
 local panel_mt = {__index = Panel}
